@@ -1,0 +1,63 @@
+﻿@using LNF.Repository.Data;
+@using Reports.Models;
+
+@model EmailPreferenceModel
+@{
+    ViewBag.Title = "Email Preferences";
+    string message = ViewBag.Message;
+}
+
+<h3>
+    @Html.ActionLink("Reports", "Index", "Home")
+    <span>/ Email Preferences</span>
+</h3>
+
+<hr />
+
+@using (Html.BeginForm("Index", "Email", FormMethod.Post, new { @class = "form-inline" }))
+{
+    <div class="form-group">
+        <label>Client:</label>
+        @if (Model.CanSelectUser)
+        {
+            @Html.DropDownListFor(x => x.ClientID, Model.AvailableClients.Select(x => new SelectListItem() { Value = x.ClientID.ToString(), Text = Client.GetDisplayName(x.LName, x.FName)}), new { @class = "form-control client-select", @style = "width: 300px;" })
+        }
+        else
+        {
+            <span>@Model.DisplayName</span>
+            <input type="hidden" name="ClientID" value="@Model.ClientID" />
+        }
+    </div>
+
+
+    <div class="panel panel-default" style="margin-top: 20px;">
+        <div class="panel-body">
+            @foreach (var item in Model.AvailableItems)
+            {
+            <div style="margin-bottom: 20px;">
+                <label>
+                    <input type="checkbox" name="SelectedItems" value="@item.EmailPreferenceID" checked="@item.Active" />
+                    @item.ReportName
+                </label>
+                <em class="text-muted" style="display: block;">
+                    @item.Description
+                </em>
+            </div>
+            }
+
+            <button type="submit" class="btn btn-primary" name="Command" value="save">Save</button>
+            @if (!string.IsNullOrEmpty(message))
+            {
+                <strong style="color:#5cb85c;">@message</strong>
+            }
+        </div>
+    </div>
+}
+
+@section scripts{
+    <script>
+        $(".client-select").on("change", function (e) {
+            $("form").submit();
+        });
+    </script>
+}

@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <configSections>
+    <sectionGroup name="lnf">
+      <section name="providers" type="LNF.ProvidersSection, LNF"/>
+      <section name="redis" type="LNF.Impl.Redis.RedisConfigurationSection, LNF.Impl"/>
+    </sectionGroup>
+  </configSections>
+
+  <lnf>
+    <providers production="false">
+      <context type="LNF.Impl.WebContextProvider, LNF.Impl" loginUrl="/login"/>
+      <dataAccess type="LNF.Impl.NHibernateWebDataAccess, LNF.Impl" showSql="true"/>
+      <serialization type="LNF.Impl.Serialization.SerializationProvider, LNF.Impl"/>
+      <email type="LNF.Impl.Email.EmailProvider, LNF.Impl" host="127.0.0.1" log="true"/>
+      <control type="LNF.Impl.Control.Wago.WagoControl, LNF.Impl" host="http://wagosvr:7778/"/>
+      <log type="LNF.Impl.Logging.ServiceLogProvider, LNF.Impl" name="Reports" enabled="true"/>
+      <modelFactory type="LNF.Impl.ModelFactory.ValueInjecterModelFactory, LNF.Impl"/>
+    </providers>
+    <redis>
+      <connection host="cachesvr" databaseId="5"/>
+    </redis>
+  </lnf>
+
+  <connectionStrings>
+    <add name="cnSselData" connectionString="Server=*****;Database=*****;User Id=*****;Password=*****"/>
+    <add name="cnProwatch" connectionString="Server=*****;Database=*****;User ID=*****;Password=*****" />
+  </connectionStrings>
+
+  <appSettings>
+    <add key="DebugEmail" value="*****" />
+    <add key="SecretKey" value="*****" />
+    <add key="TemplateDirectory" value="*****" />
+    <add key="MongoConnectionString" value="*****"/>
+    <add key="CurrentUserName" value="*****" />
+    <add key="CurrentRoles" value="*****" />
+    <add key="CurrentAppRoot" value="*****" />
+  </appSettings>
+</configuration>

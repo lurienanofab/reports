@@ -1,0 +1,148 @@
+﻿@{
+    ViewBag.Title = "User Usage Summary";
+
+    int clientId = ViewBag.ClientID;
+    string displayName = ViewBag.DisplayName;
+    DateTime period = ViewBag.Period;
+    bool canEmail = ViewBag.CanEmail && false;
+    bool canSelectUser = ViewBag.CanSelectUser;
+}
+
+@section styles{
+    <style>
+        .report-info .form-group {
+            margin-bottom: 0;
+        }
+
+        .report-info .disclaimer {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #ff0000;
+        }
+    </style>
+}
+
+<div class="user-usage-summary" data-client-id="@clientId" data-period="@period.ToString("yyyy-MM-dd")" data-api-url="@Url.Content("~/api/")" data-template-url="@Url.Content("~/templates/userUsageSummaryReport.hbs")">
+    <h3>
+        @Html.ActionLink("Reports", "Index", "Home")
+        <span>/</span>
+        @Html.ActionLink("Individual", "Index", "Individual")
+        <span>/</span>
+        <span>User Usage Summary</span>
+    </h3>
+
+    <hr />
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="form-group">
+                <label>Period</label>
+                <input type="text" class="form-control period" placeholder="MM/DD/YYYY" value="@period.ToString("MM/dd/yyyy")" />
+            </div>
+
+            <div class="form-group">
+                <label for="ClientID">User</label>
+                @if (canSelectUser)
+                {
+                    <select class="form-control users"></select>
+                }
+                else
+                {
+                    <input type="hidden" class="users" value="@clientId" />
+                    <p class="form-control-static">@displayName</p>
+                }
+            </div>
+
+            <button type="button" class="btn btn-default run-report" disabled>Run Report</button>
+
+            @if (canEmail)
+            {
+                <button type="button" class="btn btn-default email-report" disabled>Email Report</button>
+            }
+
+            <div class="alert alert-danger alert-dismissible" role="alert" style="margin-top: 20px; margin-bottom: 0; display: none;">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <span class="alert-message"></span>
+            </div>
+
+            <div class="alert alert-success alert-dismissible" role="alert" style="margin-top: 20px; margin-bottom: 0; display: none;">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <span class="alert-message"></span>
+            </div>
+
+            <div class="working" style="margin-top: 20px; margin-bottom: 0; display: none;">
+                <img src="//ssel-apps.eecs.umich.edu/static/images/ajax-loader-5.gif" />
+            </div>
+        </div>
+    </div>
+
+    <hr />
+
+    <div class="report"></div>
+
+    <script type="text/template" class="report-template">
+        <div class="panel panel-default report-info ">
+            <div class="panel-heading">
+                <h3 class="panel-title">User Usage Summary Report</h3>
+            </div>
+            <div class="panel-body">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <label class="control-label col-md-1">User</label>
+                        <div class="col-md-11">
+                            <p class="form-control-static"><%= model.DisplayName %></p>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-1">Period</label>
+                        <div class="col-md-11">
+                            <p class="form-control-static"><%= moment(model.Period).format("MM/DD/YYYY") %></p>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-1">Created</label>
+                        <div class="col-md-11">
+                            <p class="form-control-static"><%= moment(model.Created).format("MM/DD/YYYY h:mm:ss A") %></p>
+                        </div>
+                    </div>
+                </div>
+                <% if (model.Disclaimer) { %>
+                <div class="disclaimer"><%= model.Disclaimer %></div>
+                <% } %>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Aggregate by Organization</h3>
+            </div>
+            <div class="panel-body">
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Aggregate by Accounts</h3>
+            </div>
+            <div class="panel-body">
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Billing Details</h3>
+            </div>
+            <div class="panel-body">
+            </div>
+        </div>
+    </script>
+
+</div>
+
+@section scripts{
+    <script src="~/Scripts/userUsageSummary.js?v=20170523"></script>
+
+    <script>
+        $(".user-usage-summary").userUsageSummary();
+    </script>
+}

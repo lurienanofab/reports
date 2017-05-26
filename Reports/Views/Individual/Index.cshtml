@@ -1,0 +1,20 @@
+﻿@{
+    ViewBag.Title = "Individual Reports";
+}
+
+<h3>
+    @Html.ActionLink("Reports", "Index", "Home")
+    <span>/</span>
+    <span>Individual</span>
+</h3>
+
+<hr />
+
+<div class="row">
+    <div class="col-sm-4">
+        <div class="list-group">
+            @*@Html.ActionLink("User Usage Summary", "UserUsageSummary", null, new { @class = "list-group-item" })*@
+            @Html.ActionLink("Manager Usage Summary", "ManagerUsageSummary", null, new { @class = "list-group-item" })
+        </div>
+    </div>
+</div>

@@ -1,0 +1,73 @@
+﻿@{
+    ViewBag.Title = "Manager Usage Summary";
+
+    int clientId = ViewBag.ClientID;
+    DateTime period = ViewBag.Period;
+    bool canEmail = ViewBag.CanEmail;
+}
+
+@section styles{
+    <style>
+        .table > tfoot > tr {
+            background-color: #fafafa;
+        }
+    </style>
+}
+
+<div class="manager-usage-summary" data-client-id="@clientId" data-period="@period.ToString("yyyy-MM-dd")" data-api-url="@Url.Content("~/api/")" data-template-url="@Url.Content("~/Templates/managerUsageSummaryReport.hbs")">
+    <h3>
+        @Html.ActionLink("Reports", "Index", "Home")
+        <span>/</span>
+        @Html.ActionLink("Individual", "Index", "Individual")
+        <span>/</span>
+        <span>Manager Usage Summary</span>
+    </h3>
+
+    <hr />
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="form-group">
+                <label>Period</label>
+                <input type="text" class="form-control period" placeholder="MM/DD/YYYY" value="@period.ToString("MM/dd/yyyy")" />
+            </div>
+            <div class="form-group">
+                <label for="ClientID">Manager</label>
+                <select class="form-control managers"></select>
+            </div>
+
+            <button type="button" class="btn btn-default run-report" disabled>Run Report</button>
+
+            @if (canEmail)
+            {
+                <button type="button" class="btn btn-default email-report" disabled>Email Report</button>
+            }
+
+            <div class="alert alert-danger alert-dismissible" role="alert" style="margin-top: 20px; margin-bottom: 0; display: none;">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <span class="alert-message"></span>
+            </div>
+
+            <div class="alert alert-success alert-dismissible" role="alert" style="margin-top: 20px; margin-bottom: 0; display: none;">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <span class="alert-message"></span>
+            </div>
+
+            <div class="working" style="margin-top: 20px; margin-bottom: 0; display: none;">
+                <img src="//ssel-apps.eecs.umich.edu/static/images/ajax-loader-5.gif" />
+            </div>
+        </div>
+    </div>
+
+    <hr />
+
+    <div class="report"></div>
+</div>
+
+@section scripts{
+    <script src="~/Scripts/managerUsageSummary.js?v=20170526"></script>
+
+    <script>
+        $(".manager-usage-summary").managerUsageSummary();
+    </script>
+}

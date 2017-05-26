@@ -1,0 +1,24 @@
+﻿@{
+    ViewBag.Title = "Unsubscribe";
+    string message = ViewBag.Message;
+    string errmsg = ViewBag.ErrorMessage;
+}
+
+<div class="row" style="margin-top: 40px;">
+    <div class="col-lg-offset-2 col-lg-8">
+        @if (!string.IsNullOrEmpty(message))
+        {
+            <div class="alert alert-success" role="alert" style="text-align: center;">
+                @Html.Raw(message)
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(errmsg))
+        {
+            <div class="alert alert-danger" role="alert" style="text-align: center;">
+                @Html.Raw(errmsg)
+            </div>
+        }
+    </div>
+</div>
+

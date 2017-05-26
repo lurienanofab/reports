@@ -1,0 +1,32 @@
+﻿@{
+    ViewBag.Title = "Reports Admin";
+    string message = ViewBag.Message;
+}
+
+<h3>
+    @Html.ActionLink("Reports", "Index", "Home")
+    <span>/</span>
+    <span>Email Admin</span>
+</h3>
+
+<hr />
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-success alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        @Html.Raw(message)
+    </div>
+}
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">Send Email</h3>
+    </div>
+    <div class="panel-body">
+        @using (Html.BeginForm("Admin", "Home", FormMethod.Post))
+        {
+            <button type="submit" name="command" value="send-manager-summary-report" class="btn btn-default">Send Manager Summary Report</button>
+        }
+    </div>
+</div>

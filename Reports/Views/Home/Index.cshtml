@@ -1,0 +1,42 @@
+﻿@{
+    ViewBag.Title = "Reprts";
+    bool isAdmin = ViewBag.IsAdmin;
+}
+
+<h3>
+    <span>LNF Reports</span>
+</h3>
+
+<hr />
+
+<div class="row" style="margin-top: 20px;">
+    <div class="col-sm-4">
+        <h4 class="menu-title">Reports</h4>
+        <div class="list-group">
+            @Html.ActionLink("Individual", "Index", "Individual", null, new { @class = "list-group-item" })
+            @Html.ActionLink("Resource", "Index", "Resource", null, new { @class = "list-group-item" })
+            <a href="#" class="list-group-item">Store</a>
+        </div>
+    </div>
+</div>
+
+<div class="row" style="margin-top: 20px;">
+    <div class="col-sm-4">
+        <h4 class="menu-title">Preferences</h4>
+        <div class="list-group">
+            @Html.ActionLink("Email Preferences", "Email", "Preferences", null, new { @class = "list-group-item" })
+        </div>
+    </div>
+</div>
+
+@if (isAdmin)
+{
+    <div class="row" style="margin-top: 20px;">
+        <div class="col-sm-4">
+            <h4 class="menu-title">Administration</h4>
+            <div class="list-group">
+                @Html.ActionLink("Email Admin", "Email", "Admin", null, new { @class = "list-group-item" })
+            </div>
+        </div>
+    </div>
+}
