@@ -55,7 +55,7 @@ namespace Reports.Models
 
                     var model = ReportGenerator.CreateManagerUsageSummary(period, mgr, includeRemote);
 
-                    if (model.AccountItems.Count() > 0)
+                    if (model.Accounts.Count() > 0)
                     {
                         sendTo.Add(ManagerSummaryReportEmailArgs.Create(p, model, mgr));
                     }
@@ -71,7 +71,7 @@ namespace Reports.Models
 
                         var model = ReportGenerator.CreateManagerUsageSummary(period, mgr, includeRemote);
 
-                        if (model.AccountItems.Count() > 0)
+                        if (model.Accounts.Count() > 0)
                         {
                             sendTo.Add(ManagerSummaryReportEmailArgs.Create(p, model, mgr));
                         }
@@ -85,7 +85,7 @@ namespace Reports.Models
 
             foreach (var args in sendTo)
             {
-                if (args.Model.AccountItems.Count() > 0)
+                if (args.Model.Accounts.Count() > 0)
                 {
                     string toAddr = string.IsNullOrEmpty(debugEmail) ? args.Manager.Email : debugEmail;
 
@@ -115,7 +115,7 @@ namespace Reports.Models
 
             var model = args.Model;
             var client = args.Manager;
-            var width = args.Model.ShowSubsidyColumn ? 900 : 600;
+            var width = args.Model.ShowSubsidyColumn ? 1000 : 800;
 
             var unsubscribeUrl = Providers.Context.Current.GetAbsolutePath(string.Format("~/unsubscribe/{0}", Encryption.SHA256(args.Preference.ClientEmailPreferenceID.ToString())));
 
@@ -166,7 +166,7 @@ namespace Reports.Models
             //return result;
         }
 
-        private static string CreateManagerUsageSummaryTable(IEnumerable<ManagerUsageSummaryItem> items, string header, bool showSubsidyColumn)
+        private static string CreateManagerUsageSummaryTable(IEnumerable<ManagerUsageSummaryAccount> items, string header, bool showSubsidyColumn)
         {
             string result = string.Empty;
 

@@ -5,6 +5,8 @@
 
             var opts = $.extend({}, { "apiUrl": "api/", "clientId": 0, "period": null }, options, $this.data());
 
+            var lastClientId = 0;
+
             var showAlert = function (msg) {
                 var alert = $(".alert-danger", $this);
                 $(".alert-message", alert).html(msg);
@@ -54,7 +56,14 @@
             var loadManagers = function () {
                 var def = $.Deferred();
 
-                var managers = $(".managers", $this);
+                var managers = $("select.managers", $this);
+
+                if (managers.length == 0) {
+                    $(".run-report", $this).prop("disabled", false);
+                    $(".email-report", $this).prop("disabled", false);
+                    def.resolve();
+                    return def.promise();
+                }
 
                 if (!$(".period", $this).val()) {
                     managers.html("");
@@ -78,7 +87,7 @@
                         managers.html("")
                             .append($("<option/>").val(0).text("-- Select --"))
                             .append($.map(data, function (item, index) {
-                                return $("<option/>").val(item.ClientID).text(getDisplayName(item)).prop("selected", item.ClientID == opts.clientId);
+                                return $("<option/>").val(item.ClientID).text(getDisplayName(item)).prop("selected", item.ClientID == lastClientId);
                             }));
                         def.resolve();
                     }).fail(function (jqXHR, textStatus, errorThrown) {
@@ -136,8 +145,10 @@
 
             initTemplate().done(function (tpl) {
                 var displayReport = function (model) {
-                    var output = tpl({ "model": model, "class": "col-md-" + (model.ShowSubsidyColumn ? "7" : "4") });
-                    $(".report", $this).html(output);
+                    $(".report", $this).html(tpl({
+                        "model": model,
+                        "class": "col-md-" + (model.ShowSubsidyColumn ? "8" : "5")
+                    }));
                 }
 
                 var loadReport = function (period, clientId) {
@@ -146,6 +157,8 @@
 
                     if (clientId > 0) {
                         if (period.isValid()) {
+                            lastClientId = clientId;
+
                             $(".run-report", $this).prop("disabled", true);
                             $(".email-report", $this).prop("disabled", true);
 

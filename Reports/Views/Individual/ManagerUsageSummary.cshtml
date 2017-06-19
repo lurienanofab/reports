@@ -2,14 +2,21 @@
     ViewBag.Title = "Manager Usage Summary";
 
     int clientId = ViewBag.ClientID;
+    string displayName = ViewBag.DisplayName;
     DateTime period = ViewBag.Period;
     bool canEmail = ViewBag.CanEmail;
+    bool canSelectUser = ViewBag.CanSelectUser;
 }
 
 @section styles{
     <style>
         .table > tfoot > tr {
             background-color: #fafafa;
+        }
+
+        ul {
+            margin-bottom: 0;
+            font-size: smaller;
         }
     </style>
 }
@@ -33,7 +40,15 @@
             </div>
             <div class="form-group">
                 <label for="ClientID">Manager</label>
-                <select class="form-control managers"></select>
+                @if (canSelectUser)
+                {
+                    <select class="form-control managers"></select>
+                }
+                else
+                {
+                    <input type="hidden" class="managers" value="@clientId" />
+                    <p class="form-control-static">@displayName</p>
+                }
             </div>
 
             <button type="button" class="btn btn-default run-report" disabled>Run Report</button>
@@ -65,7 +80,7 @@
 </div>
 
 @section scripts{
-    <script src="~/Scripts/managerUsageSummary.js?v=20170526"></script>
+    <script src="~/Scripts/managerUsageSummary.js?v=20170609"></script>
 
     <script>
         $(".manager-usage-summary").managerUsageSummary();

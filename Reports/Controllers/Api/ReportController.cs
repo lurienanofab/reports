@@ -1,9 +1,8 @@
-﻿using LNF.Reporting;
-using LNF.Models.Reporting;
+﻿using LNF.Models.Reporting;
 using LNF.Models.Reporting.Individual;
+using LNF.Reporting;
 using LNF.Repository;
 using LNF.Repository.Data;
-using LNF.Repository.Reporting;
 using Reports.Models;
 using System;
 using System.Linq;
@@ -11,7 +10,6 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Web.Http;
-using System.Xml.Linq;
 
 namespace Reports.Controllers.Api
 {
@@ -26,36 +24,7 @@ namespace Reports.Controllers.Api
             if (mgr == null)
                 throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.NotFound, "Manager not found."));
 
-            var charges = DA.Current.Query<ManagerUsageCharge>().Where(x => x.Period >= sd && x.Period < ed && x.ManagerClientID == mgr.ClientID && (!x.IsRemote || remote));
-
-            var result = charges
-                .GroupBy(x => new { x.Period, x.BillingCategory, x.LName, x.FName, x.ShortCode, x.AccountNumber, x.AccountName, x.OrgName, x.IsSubsidyOrg })
-                .Select(x => new
-                {
-                    Period = x.Key.Period,
-                    BillingCategory = x.Key.BillingCategory,
-                    DisplayName = Client.GetDisplayName(x.Key.LName, x.Key.FName),
-                    Account = ReportGenerator.GetAccountName(x.Key.ShortCode, x.Key.AccountNumber, x.Key.AccountName, x.Key.OrgName),
-                    Sort = x.Key.BillingCategory + ":" + ReportGenerator.GetAccountSort(x.Key.ShortCode, x.Key.AccountNumber, x.Key.AccountName, x.Key.OrgName),
-                    TotalCharge = x.Sum(g => g.TotalCharge),
-                    SubsidyDiscount = x.Sum(g => g.SubsidyDiscount),
-                    SubsidyOrg = x.Key.IsSubsidyOrg
-                })
-                .OrderBy(x => x.DisplayName)
-                .ThenBy(x => x.Sort)
-                .ToList();
-
-            var xdoc = new XElement("table",
-                result.Select(x => new XElement("row",
-                    new XElement("Period", x.Period),
-                    new XElement("BillingCategory", x.BillingCategory),
-                    new XElement("DisplayName", x.DisplayName),
-                    new XElement("Account", x.Account),
-                    new XElement("TotalCharge", x.TotalCharge.ToString("#,##0.00")),
-                    new XElement("SubsidyDiscount", x.SubsidyDiscount.ToString("#,##0.00")),
-                    new XElement("SubsidyOrg", x.SubsidyOrg)
-                )));
-
+            var xdoc = ReportGenerator.GetManagerUsageDetail(sd, ed, mgr, remote);
 
             return new HttpResponseMessage(HttpStatusCode.OK)
             {

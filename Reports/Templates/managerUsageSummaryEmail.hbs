@@ -2,21 +2,22 @@
     Dear {{client.FName}} {{client.LName}},
     <br />
     <br />
-    Below is a summary of your group's usage charges in the LNF during the month of {{format_date model.Period "MMMM yyyy"}}. The numbers include all LNF charges (room, tool and store). Please note that this message intends to give you an early reasonable indication of usage charges, before the final numbers are posted/invoiced.
+    Below is a summary of your group's LNF usage charges during the month of {{format_date model.Period "MMMM yyyy"}}. The numbers include all LNF charges (room, tool and store). Please note that the numbers are preliminary and this message intends to give you an early reasonable indication of usage charges, before the final numbers are posted/invoiced. Final charges are expected to be posted/invoiced during the month of {{format_date model.Period "MMMM yyyy" "+1 month"}}.
 </p>
 <hr />
 {{#if model.HasData}}
 <br />
 <br />
-<b>Charges by Account</b>
+<b>Preliminary Charges by Account - {{format_date model.Period "MMMM yyyy"}}</b>
 <table border="1" width="{{width}}" cellpadding="5" bordercolor="#cccccc" style="margin-top: 20px; border-collapse: collapse;">
     <thead>
         <tr bgcolor="#eeeeee">
-            <th>Account</th>
+            <th width="150">Account</th>
+            <th>Users</th>
             {{#if model.ShowSubsidyColumn}}
-            <th width="150">Net Charges</th>
             <th width="150">Usage Charges</th>
-            <th width="150">Subsidy</th>
+            <th width="150">User Subsidy</th>
+            <th width="150">Net Charges</th>
             {{else}}
             <th width="150">Usage Charges</th>
             {{/if}}
@@ -24,18 +25,20 @@
     </thead>
     <tbody>
         {{#if model.ShowSubsidyColumn}}
-        {{#each model.AccountItems}}
+        {{#each model.Accounts}}
         <tr>
             <td>{{Name}}</td>
-            <td align="right">{{format_currency NetCharge}}</td>
+            <td>{{Members}}</td>
             <td align="right">{{format_currency UsageCharge}}</td>
             <td align="right">{{format_currency Subsidy}}</td>
+            <td align="right">{{format_currency NetCharge}}</td>
         </tr>
         {{/each}}
         {{else}}
-        {{#each model.AccountItems}}
+        {{#each model.Accounts}}
         <tr>
             <td>{{Name}}</td>
+            <td>{{Members}}</td>
             <td align="right">{{format_currency UsageCharge}}</td>
         </tr>
         {{/each}}
@@ -43,11 +46,11 @@
     </tbody>
     <tfoot>
         <tr bgcolor="#eeeeee">
-            <td><b>Total</b></td>
+            <td colspan="2">&nbsp;</td>
             {{#if model.ShowSubsidyColumn}}
-            <td align="right"><b>{{format_currency model.TotalNetCharge}}</b></td>
             <td align="right"><b>{{format_currency model.TotalUsageCharge}}</b></td>
             <td align="right"><b>{{format_currency model.TotalSubsidy}}</b></td>
+            <td align="right"><b>{{format_currency model.TotalNetCharge}}</b></td>
             {{else}}
             <td align="right"><b>{{format_currency model.TotalUsageCharge}}</b></td>
             {{/if}}
@@ -56,15 +59,16 @@
 </table>
 <br />
 <br />
-<b>Charges by Lab User</b>
+<b>Preliminary Charges by Lab User - {{format_date model.Period "MMMM yyyy"}}</b>
 <table border="1" width="{{width}}" cellpadding="5" bordercolor="#cccccc" style="margin-top: 20px; border-collapse: collapse;">
     <thead>
         <tr bgcolor="#eeeeee">
-            <th>Lab User</th>
+            <th width="150">Lab User</th>
+            <th>Accounts</th>
             {{#if model.ShowSubsidyColumn}}
             <th width="150">Net Charges</th>
             <th width="150">Usage Charges</th>
-            <th width="150">Subsidy</th>
+            <th width="150">User Subsidy</th>
             {{else}}
             <th width="150">Usage Charges</th>
             {{/if}}
@@ -72,16 +76,17 @@
     </thead>
     <tbody>
         {{#if model.ShowSubsidyColumn}}
-        {{#each model.ClientItems}}
+        {{#each model.Clients}}
         <tr>
             <td>{{Name}}</td>
+            <td>{{Members}}</td>
             <td align="right">{{format_currency NetCharge}}</td>
             <td align="right">{{format_currency UsageCharge}}</td>
             <td align="right">{{format_currency Subsidy}}</td>
         </tr>
         {{/each}}
         {{else}}
-        {{#each model.ClientItems}}
+        {{#each model.Clients}}
         <tr>
             <td>{{Name}}</td>
             <td align="right">{{format_currency UsageCharge}}</td>
@@ -91,11 +96,11 @@
     </tbody>
     <tfoot>
         <tr bgcolor="#eeeeee">
-            <td><b>Total</b></td>
+            <td colspan="2">&nbsp;</td>
             {{#if model.ShowSubsidyColumn}}
-            <td align="right"><b>{{format_currency model.TotalNetCharge}}</b></td>
             <td align="right"><b>{{format_currency model.TotalUsageCharge}}</b></td>
             <td align="right"><b>{{format_currency model.TotalSubsidy}}</b></td>
+            <td align="right"><b>{{format_currency model.TotalNetCharge}}</b></td>
             {{else}}
             <td align="right"><b>{{format_currency model.TotalUsageCharge}}</b></td>
             {{/if}}
@@ -110,15 +115,22 @@
 <br />
 <br />
 <hr />
+{{#if model.ShowSubsidyColumn}}
 <p>
-    As a reminder, more details about lab usage and charges for each user listed above can be found in the LNF Online Services (<a href="http://ssel-sched.eecs.umich.edu/sselonline">http://ssel-sched.eecs.umich.edu/sselonline</a>).<br />Instructions are available at <a href="http://lnf-wiki.eecs.umich.edu/wiki/Online_Usage_Report">http://lnf-wiki.eecs.umich.edu/wiki/Online_Usage_Report</a>.
-    <br />
-    <br />
-    If any change in the list of lab users or accounts is needed for future usage, or if you have any question, please contact <a href="mailto:LNF-billing@umich.edu">LNF-billing@umich.edu</a>.
-    <br />
-    <br />
-    Best regards,
-    <br />
+    The LNF user subsidy program is funded thanks to the support of the College of Engineering. See more information at http://lnf-wiki.eecs.umich.edu/wiki/User_Subsidy
+</p>
+{{/if}}
+<p>
+    Details of lab usage and charges can be found online (http://ssel-sched.eecs.umich.edu/sselonline).
+</p>
+<p>
+    Instructions to access the LNF online reports are available at http://lnf-wiki.eecs.umich.edu/wiki/Online_Usage_Report.
+</p>
+<p>
+    If you have any question or require any change in the list of lab users or accounts for future usage, please contact LNF-billing@umich.edu.
+</p>
+<p>
+    Best regards,<br />
     Sandrine
 </p>
 <p>

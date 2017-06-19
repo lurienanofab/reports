@@ -1,14 +1,15 @@
 ﻿using HandlebarsDotNet;
 using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace Reports.Models
 {
     public static class TemplateManager
     {
         private readonly static Func<object, string> _managerUsageSummaryEmailTemplate;
-
 
         static TemplateManager()
         {
@@ -39,6 +40,49 @@ namespace Reports.Models
                 if (parameters.Length > 1)
                 {
                     format = parameters[1].ToString();
+                }
+
+                if (parameters.Length > 2)
+                {
+                    Func<int, DateTime, DateTime> operation = null;
+
+                    string value = parameters[2].ToString();
+
+                    var matches = Regex.Match(value, "(\\+|-)(\\d+) (day|month|year|hour|minute|second|ms)");
+
+                    var op = matches.Groups[1].Value;
+                    var amt = int.Parse(matches.Groups[2].Value) * (op == "-" ? -1 : 1);
+                    var part = matches.Groups[3].Value;
+
+                    switch (part)
+                    {
+                        case "day":
+                            operation = (i, date) => date.AddDays(i);
+                            break;
+                        case "month":
+                            operation = (i, date) => date.AddMonths(i);
+                            break;
+                        case "year":
+                            operation = (i, date) => date.AddYears(i);
+                            break;
+                        case "hour":
+                            operation = (i, date) => date.AddYears(i);
+                            break;
+                        case "minute":
+                            operation = (i, date) => date.AddMinutes(i);
+                            break;
+                        case "second":
+                            operation = (i, date) => date.AddSeconds(i);
+                            break;
+                        case "ms":
+                            operation = (i, date) => date.AddMilliseconds(i);
+                            break;
+                    }
+
+                    if (operation != null)
+                    {
+                        d = operation(amt, d);
+                    }
                 }
 
                 if (string.IsNullOrEmpty(format))
