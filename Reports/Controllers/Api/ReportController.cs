@@ -1,10 +1,13 @@
-﻿using LNF.Models.Reporting;
+﻿using LNF.Billing;
+using LNF.Models.Reporting;
 using LNF.Models.Reporting.Individual;
 using LNF.Reporting;
 using LNF.Repository;
 using LNF.Repository.Data;
+using LNF.Repository.Scheduler;
 using Reports.Models;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -98,5 +101,40 @@ namespace Reports.Controllers.Api
             else
                 throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.NotFound, "Manager not found."));
         }
+
+        [Route("api/report/duration/{reservationId}/info")]
+        public ReservationDateRange.DurationInfo GetDurationInfo(int reservationId)
+        {
+            var rsv = DA.Current.Single<Reservation>(reservationId);
+
+            if (rsv == null)
+                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.NotFound, string.Format("Reservation not found with ReservationID = {0}.", reservationId)));
+
+            var dr = ReservationDateRange.ExpandRange(rsv.Resource.ResourceID, rsv.ChargeBeginDateTime(), rsv.ChargeEndDateTime());
+            var range = new ReservationDateRange(rsv.Resource.ResourceID, dr);
+            var durations = range.CreateReservationDurations();
+            var item = durations[rsv.Resource.ResourceID].FirstOrDefault(x => x.Reservation.ReservationID == reservationId);
+
+            if (item != null)
+                return range.GetDurationInfo(item.Reservation);
+            else
+                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.BadRequest, string.Empty));
+        }
+
+        [HttpPost, Route("api/report/duration/info")]
+        public IEnumerable<ReservationDateRange.DurationInfo> GetDurationInfos([FromBody] DurationInfoArgs args)
+        {
+            var range = new ReservationDateRange(args.ResourceID, args.StartDate, args.EndDate);
+            var durations = range.CreateReservationDurations();
+            var result = durations[args.ResourceID].Select(x => range.GetDurationInfo(x.Reservation)).ToArray();
+            return result;
+        }
+    }
+
+    public class DurationInfoArgs
+    {
+        public int ResourceID { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
     }
 }

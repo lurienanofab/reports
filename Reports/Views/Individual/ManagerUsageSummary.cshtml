@@ -6,6 +6,12 @@
     DateTime period = ViewBag.Period;
     bool canEmail = ViewBag.CanEmail;
     bool canSelectUser = ViewBag.CanSelectUser;
+
+    string returnTo = null;
+    if (Session["return-to"] != null)
+    {
+        returnTo = Session["return-to"].ToString();
+    }
 }
 
 @section styles{
@@ -22,13 +28,21 @@
 }
 
 <div class="manager-usage-summary" data-client-id="@clientId" data-period="@period.ToString("yyyy-MM-dd")" data-api-url="@Url.Content("~/api/")" data-template-url="@Url.Content("~/Templates/managerUsageSummaryReport.hbs")">
-    <h3>
-        @Html.ActionLink("Reports", "Index", "Home")
-        <span>/</span>
-        @Html.ActionLink("Individual", "Index", "Individual")
-        <span>/</span>
-        <span>Manager Usage Summary</span>
-    </h3>
+    @if (string.IsNullOrEmpty(returnTo))
+    {
+        <h3>
+            @Html.ActionLink("Reports", "Index", "Home")
+            <span>/</span>
+            @Html.ActionLink("Individual", "Index", "Individual")
+            <span>/</span>
+            <span>Manager Usage Summary</span>
+        </h3>
+    }
+    else
+    {
+        <h2 class="report-title">Manager Usage Summary</h2>
+        <div><strong><a href="@Url.Action("Return", "Home")">&larr; Return to Main Page</a></strong></div>
+    }
 
     <hr />
 

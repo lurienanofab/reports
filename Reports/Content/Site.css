@@ -1,3 +1,9 @@
-﻿.menu-title{
+﻿.menu-title {
     text-align: center;
+}
+
+.report-title {
+    color: #cc6600;
+    font-size: 25px;
+    margin-top: 0;
 }

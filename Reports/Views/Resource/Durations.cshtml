@@ -1,0 +1,339 @@
+﻿@using LNF.CommonTools;
+@using Reports.Models;
+
+@model DurationsModel
+@{
+    ViewBag.Title = "Durations Report";
+
+    var sd = Model.GetStartDateTime();
+    var ed = Model.GetEndDateTime();
+    var rounded = new { start = sd.RoundDown(TimeSpan.FromMinutes(5)), end = ed.RoundUp(TimeSpan.FromMinutes(5)) };
+    var zoom = Model.Zoom.GetValueOrDefault(4);
+    var selectedTab = (Model.ReservationID == 0) ? "#by-range" : "#by-reservation";
+
+    string returnTo = null;
+    if (Session["return-to"] != null)
+    {
+        returnTo = Session["return-to"].ToString();
+    }
+}
+
+@if (string.IsNullOrEmpty(returnTo))
+{
+    <h3>
+        @Html.ActionLink("Reports", "Index", "Home")
+        <span>/</span>
+        @Html.ActionLink("Resource", "Index", "Resource")
+        <span>/</span>
+        <span>Durations Report</span>
+    </h3>
+}
+else
+{
+    <h2 class="report-title">Durations Report</h2>
+    <div><strong><a href="@Url.Action("Return", "Home")">&larr; Return to Main Page</a></strong></div>
+}
+
+<hr />
+
+<div>
+    <ul class="nav nav-tabs" role="tablist">
+        <li role="presentation"><a href="#by-range" aria-controls="by-range" role="tab" data-toggle="tab">Search by Date Range</a></li>
+        <li role="presentation"><a href="#by-reservation" aria-controls="by-reservation" role="tab" data-toggle="tab">Search by Reservation</a></li>
+    </ul>
+
+    <div class="tab-content" style="margin-top: 20px;">
+        <div role="tabpanel" class="tab-pane active" id="by-range">
+            @using (Html.BeginForm("TransferTime", "Resource", FormMethod.Get))
+            {
+                @Html.Hidden("StartDate", rounded.start.ToString("yyyy-MM-ddTHH:mm:sszzz"), new { @class = "start-date" })
+                @Html.Hidden("EndDate", rounded.end.ToString("yyyy-MM-ddTHH:mm:sszzz"), new { @class = "end-date" })
+
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="form-group">
+                            <label for="StartDate">Start Date</label>
+                            <div class="form-inline">
+                                <div class="form-group">
+                                    <input type="text" class="form-control date-picker sdate" value="@rounded.start.ToString("M/d/yyyy")" style="width: 120px;" />
+                                </div>
+                                <div class="form-group">
+                                    <input type="text" class="form-control time-picker stime" value="@rounded.start.ToString("h:mm tt")" style="width: 120px;" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="StartTime">End Date</label>
+                            <div class="form-inline">
+                                <div class="form-group">
+                                    <input type="text" class="form-control date-picker edate" value="@rounded.end.ToString("M/d/yyyy")" style="width: 120px;" />
+                                </div>
+                                <div class="form-group">
+                                    <input type="text" class="form-control time-picker etime" value="@rounded.end.ToString("h:mm tt")" style="width: 120px;" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xs-3">
+                        <div class="form-group">
+                            <label for="ResourceID">Resource</label>
+                            @Html.DropDownListFor(x => x.ResourceID, Model.Resources.Select(x => new SelectListItem() { Text = x.ResourceName, Value = x.ResourceID.ToString(), Selected = x.ResourceID == Model.ResourceID }), "-- Select --", new { @class = "form-control" })
+                        </div>
+
+                        <button type="submit" class="btn btn-default run-report">Run Report</button>
+                    </div>
+                </div>
+            }
+        </div>
+        <div role="tabpanel" class="tab-pane" id="by-reservation">
+            @using (Html.BeginForm("TransferTime", "Resource", FormMethod.Get))
+            {
+                <div class="row">
+                    <div class="col-xs-2">
+                        <div class="form-group">
+                            <label>ReservationID</label>
+                            @Html.TextBox("ReservationID", (Model.ReservationID == 0) ? string.Empty : Model.ReservationID.ToString(), new { @class = "form-control", @style = "width: 120px;" })
+                        </div>
+
+                        <button type="submit" class="btn btn-default run-report">Run Report</button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="alert alert-danger alert-dismissible" role="alert" style="margin-top: 20px; margin-bottom: 0; display: none;">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <span class="alert-message"></span>
+    </div>
+
+    <div class="alert alert-success alert-dismissible" role="alert" style="margin-top: 20px; margin-bottom: 0; display: none;">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <span class="alert-message"></span>
+    </div>
+</div>
+
+<hr />
+
+@if (Model.SelectedResource != null)
+{
+    <div style="margin-bottom: 20px;">
+        <h3>Duration Report for @Model.SelectedResource.ResourceName [@Model.SelectedResource.ResourceID]</h3>
+
+        <div style="font-size: larger; margin-bottom: 20px;">
+            <span>from</span>
+            <strong>@rounded.start.ToString("MM/dd/yyyy hh:mm tt")</strong>
+            <span>to</span>
+            <strong>@rounded.end.ToString("MM/dd/yyyy hh:mm tt")</strong>
+        </div>
+
+        <div class="loading"><em class="text-muted">loading...</em></div>
+        <div class="durations-report" data-resource-id="@Model.SelectedResource.ResourceID" data-start-date="@sd.ToString("yyyy-MM-dd HH:mm:ss")" data-end-date="@ed.ToString("yyyy-MM-dd HH:mm:ss")" style="display: none;">
+
+            <div class="chart-container" style="border: solid 1px #ccc; border-radius: 4px; background-color: #fafafa; margin-bottom: 20px; padding: 10px;">
+                <div class="chart" data-start-date="@rounded.start.ToString("yyyy-MM-dd HH:mm:ss")" data-end-date="@rounded.end.ToString("yyyy-MM-dd HH:mm:ss")" style="width: 100%; overflow-x: auto;"></div>
+                <div>
+                    <div><em><strong style="color: rgba(204, 204, 0, 0.5);">yellow:</strong> transferred duration</em></div>
+                    <div><em><strong style="color: rgba(0, 128, 0 ,0.5);">green:</strong> standard duration</em></div>
+                    <div><em><strong style="color: rgba(128, 0, 0 ,0.5);">red:</strong> overtime duration</em></div>
+                </div>
+            </div>
+
+            <script id="durations-template" type="text/x-handlebars-template">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Priority</th>
+                            <th>ReservationID</th>
+                            <th style="text-align: center;">Started</th>
+                            <th style="text-align: center;">Active</th>
+                            <th>BeginDateTime</th>
+                            <th>EndDateTime</th>
+                            <th>ActualBeginDateTime</th>
+                            <th>ActualEndDateTime</th>
+                            <th>Transferred</th>
+                            <th>Standard</th>
+                            <th>Overtime</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#each durations}}
+                        <tr>
+                            <td>{{priorityGroup}}</td>
+                            <td>{{reservationId}}</td>
+                            <td style="text-align: center;">{{started}}</td>
+                            <td style="text-align: center;">{{active}}</td>
+                            <td>{{beginDateTime}}</td>
+                            <td>{{endDateTime}}</td>
+                            <td>{{actualBeginDateTime}}</td>
+                            <td>{{actualEndDateTime}}</td>
+                            <td>{{transferred}}</td>
+                            <td>{{standard}}</td>
+                            <td>{{overtime}}</td>
+                        </tr>
+                        {{/each}}
+                    </tbody>
+                </table>
+            </script>
+
+            <div class="report-table-container">
+                <div class="report-table"></div>
+                <hr />
+                <div>
+                    <div><em><strong>priority 0:</strong> unstarted, cancelled</em></div>
+                    <div><em><strong>priority 1:</strong> unstarted, uncancelled</em></div>
+                    <div><em><strong>priority 2:</strong> started normal, ended normal</em></div>
+                    <div><em><strong>priority 3:</strong> started early, ended normal</em></div>
+                    <div><em><strong>priority 4:</strong> started normal, ended late</em></div>
+                    <div><em><strong>priority 5:</strong> started early, ended late</em></div>
+                </div>
+                <div style="margin-top: 10px;">
+                    <div><em><strong>started normal:</strong> at or after scheduled start time</em></div>
+                    <div><em><strong>ended normal:</strong> at or before scheduled end time</em></div>
+                </div>
+            </div>
+
+            <div class="text-muted no-data" style="display: none;">
+                <em>No reservations were found in this date range.</em>
+            </div>
+        </div>
+    </div>
+}
+
+@section scripts{
+    <script src="~/Scripts/durations.js"></script>
+
+    <script>
+        function updateStartDate(d) {
+            $(".start-date").val(d.format());
+        }
+
+        function updateEndDate(d) {
+            $(".end-date").val(d.format());
+        }
+
+        function getDateTime(d, t) {
+            var date = new Date(d.format("MM/DD/YYYY") + " " + t);
+            return moment(date);
+        }
+
+        $(".date-picker").datepicker({
+            "format": "m/d/yyyy",
+            "autoclose": true
+        }).on("changeDate", function (e) {
+            var d = moment(e.date);
+
+            if ($(this).hasClass("sdate")) {
+                var dt = getDateTime(d, $(".stime").val());
+                updateStartDate(dt);
+            } else {
+                var dt = getDateTime(d, $(".etime").val());
+                updateEndDate(dt);
+            }
+        });
+
+        $(".time-picker").timepicker({
+            "template": false,
+            "showInputs": false,
+            "minuteStep": 5
+        }).on("changeTime.timepicker", function (e) {
+            if ($(this).hasClass("stime")) {
+                var d = moment($(".sdate").datepicker("getDate"));
+                var dt = getDateTime(d, e.time.value);
+                updateStartDate(dt);
+            } else {
+                var d = moment($(".edate").datepicker("getDate"));
+                var dt = getDateTime(d, e.time.value);
+                updateEndDate(dt);
+            }
+        });
+
+        var selectedTab = '@selectedTab';
+        $('.nav-tabs a[href="' + selectedTab + '"]').tab('show');
+
+        // the exact date range is used to retrieve data, but the rounded date range is used for displaying 
+
+        $(".durations-report").each(function () {
+            var rep = $(this);
+            var loading = $(".loading");
+            var sd = rep.data("startDate");
+            var ed = rep.data("endDate");
+            var resourceId = rep.data("resourceId");
+
+            var source = $("#durations-template", rep).html();
+            var template = Handlebars.compile(source);
+
+            var createContext = function (data) {
+                var result = { durations: [] };
+
+                var getTotalDuration = function (durationType, parts) {
+                    var ms = 0;
+
+                    $.each(parts, function (index, item) {
+                        if (item.DurationType == durationType) {
+                            var dur = moment.duration(item.Duration);
+                            ms += dur.asMilliseconds();
+                        }
+                    });
+
+                    return moment.duration(ms);
+                }
+
+                $.each(data, function (index, item) {
+                    var totalTransferred = getTotalDuration("T", item.Parts);
+                    var totalStandard = getTotalDuration("S", item.Parts);
+                    var totalOvertime = getTotalDuration("O", item.Parts);
+
+                    result.durations.push({
+                        priorityGroup: item.PriorityGroup,
+                        reservationId: item.ReservationID,
+                        started: item.IsStarted ? "Y" : "N",
+                        active: item.IsActive ? "Y" : "N",
+                        beginDateTime: moment(item.BeginDateTime).format("MM/DD/YYYY hh:mm:ss A"),
+                        endDateTime: moment(item.EndDateTime).format("MM/DD/YYYY hh:mm:ss A"),
+                        actualBeginDateTime: moment(item.ActualBeginDateTime).format("MM/DD/YYYY hh:mm:ss A"),
+                        actualEndDateTime: moment(item.ActualEndDateTime).format("MM/DD/YYYY hh:mm:ss A"),
+                        transferred: numeral(totalTransferred.asSeconds()).format("00:00:00"),
+                        standard: numeral(totalStandard.asSeconds()).format("00:00:00"),
+                        overtime: numeral(totalOvertime.asSeconds()).format("00:00:00")
+                    });
+                });
+
+                return result;
+            }
+
+            $.ajax({
+                "url": '@Url.Content("~/api/report/duration/info")',
+                "method": "POST",
+                "data": { "ResourceID": resourceId, "StartDate": sd, "EndDate": ed }
+            }).done(function (data) {
+
+                if (data.length > 0) {
+                    $(".chart", rep).durations({
+                        "backgroundColor": "#fafafa",
+                        "pixelsPerUnit": parseInt('@zoom'),
+                        "durations": data
+                    });
+
+                    var context = createContext(data);
+                    var html = template(context);
+                    $(".report-table-container .report-table", rep).html(html);
+
+                    $(".chart-container", rep).show();
+                    $(".report-table-container", rep).show();
+                    $(".no-data", rep).hide();
+                } else {
+                    $(".chart-container", rep).hide();
+                    $(".report-table-container", rep).hide();
+                    $(".no-data", rep).show();
+                }
+
+                rep.show();
+                loading.hide();
+            });
+        });
+    </script>
+}

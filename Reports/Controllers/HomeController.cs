@@ -43,5 +43,42 @@ namespace Reports.Controllers
 
             return View();
         }
+
+        [Route("dispatch/{name?}")]
+        public ActionResult Dispatch(string name = null, string returnTo = null)
+        {
+            string action = "Index";
+            string controller = "Home";
+
+            object routeValues = null;
+
+            switch (name)
+            {
+                case "durations-report":
+                    action = "Durations";
+                    controller = "Resource";
+                    break;
+                case "manager-usage-summary":
+                    action = "ManagerUsageSummary";
+                    controller = "Individual";
+                    break;
+                default:
+                    Session.Remove("return-to");
+                    return RedirectToAction("Index");
+            }
+
+            Session["return-to"] = returnTo;
+
+            return RedirectToAction(action, controller, routeValues);
+        }
+
+        [Route("return")]
+        public ActionResult Return()
+        {
+            if (string.IsNullOrEmpty(Convert.ToString(Session["return-to"])))
+                return RedirectToAction("Index");
+            else
+                return Redirect(Convert.ToString(Session["return-to"]));
+        }
     }
 }

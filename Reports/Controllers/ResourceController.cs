@@ -1,8 +1,14 @@
 ﻿using LNF;
+using LNF.Billing;
+using LNF.Models.Scheduler;
 using LNF.PhysicalAccess;
+using LNF.Repository;
+using LNF.Repository.Data;
+using LNF.Repository.Scheduler;
 using Reports.Models;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -23,6 +29,44 @@ namespace Reports.Controllers
         public ActionResult Index()
         {
             return View();
+        }
+
+        [Route("resource/durations")]
+        public ActionResult Durations(DurationsModel model)
+        {
+            model.Resources = DA.Current.Query<Resource>().Where(x => x.IsActive).OrderBy(x => x.ResourceName).Model<ResourceModel>();
+
+            if (model.ReservationID > 0)
+            {
+                var rsv = DA.Current.Single<Reservation>(model.ReservationID);
+
+                if (rsv != null)
+                {
+                    model.StartDate = rsv.ChargeBeginDateTime();
+                    model.EndDate = rsv.ChargeEndDateTime();
+                    model.ResourceID = rsv.Resource.ResourceID;
+                }
+                else
+                {
+                    model.ReservationID = 0;
+                    ModelState["ReservationID"].Value = new ValueProviderResult("0", "0", CultureInfo.CurrentCulture);
+                }
+            }
+
+            ReservationDateRange.DateRange range = default(ReservationDateRange.DateRange);
+
+            if (model.SelectedResource != null)
+            {
+                var sd = model.GetStartDateTime();
+                var ed = model.GetEndDateTime();
+                var resourceId = model.SelectedResource.ResourceID;
+
+                range = ReservationDateRange.ExpandRange(resourceId, sd, ed);
+            }
+
+            model.Range = range;
+
+            return View(model);
         }
 
         /// <summary>
