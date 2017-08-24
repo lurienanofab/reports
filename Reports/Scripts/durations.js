@@ -3,22 +3,25 @@
     /// <param name="opts" value="{startDate:'',endDate:'',durations:[{ReservationID:0,ChargeBeginDateTime:'',Parts:[{DurationType:'',Duration:''}]}]}">The total chart duration.</param>
     /// <field name="startDate" value="moment()">The date range start date for the data.</field>
     /// <field name="endDate" value="moment()">The date range end date for the data.</field>
+    /// <field name="totalDuration" value="moment.duration()">The entire duration between the chart start and end dates.</field>
     /// <field name="durations" value="[new DurationInfo()]">A collection of DurationInfo objects.</field>
-    
-    this.startDate = moment(opts.startDate);
-    this.endDate = moment(opts.endDate);
 
-    var diff = this.endDate.diff(this.startDate);
+    var _self = this;
 
-    this.totalDuration = moment.duration(diff);
+    _self.startDate = moment(opts.startDate);
+    _self.endDate = moment(opts.endDate);
+
+    var diff = _self.endDate.diff(_self.startDate);
+
+    _self.totalDuration = moment.duration(diff);
 
     var _durations = [];
-    
+
     $.each(opts.durations, function (index, value) {
         _durations.push(new DurationInfo(value));
     });
 
-    this.durations = _durations;
+    _self.durations = _durations;
 }
 
 function ChartScale(duration, ppu) {
@@ -29,11 +32,11 @@ function ChartScale(duration, ppu) {
     /// <field name="units" type="String">The scale units: minutes, hours, or days.</field>
     /// <field name="value" type="Number">The number of units in the total chart duration.</field>
     /// <field name="increment" type="Number">The number of units between each vertical grid line.</field>
-    
+
     var _self = this;
 
     var _units, _value, _increment;
-    
+
     var totalMinutes = duration.asMinutes();
 
     if (totalMinutes > 1440 * 7) {
@@ -52,12 +55,12 @@ function ChartScale(duration, ppu) {
         _increment = 5; // one tick mark for every five minutes
     }
 
-    this.isMajor = function (time) {
+    _self.isMajor = function (time) {
         /// <summary>Determines if the specified time is a major tick mark.</summary>
         /// <param name="time" value="moment()">The tick mark time.</param>
         /// <returns type="Boolean">True when the time is for a major tick mark, otherwise false.</returns>
-        
-        console.log(time.format("MM/DD/YYYY hh:mm:ss a") + ": " + time.days() + " days, " + time.hours() + " hours, " + time.minutes() + " minutes");
+
+        //console.log(time.format("MM/DD/YYYY hh:mm:ss a") + ": " + time.days() + " days, " + time.hours() + " hours, " + time.minutes() + " minutes");
 
         switch (_units) {
             case "days":
@@ -72,11 +75,11 @@ function ChartScale(duration, ppu) {
         }
     };
 
-    this.getLength = function (duration) {
+    _self.getLength = function (duration) {
         /// <summary>Finds the number of pixels needed to represent the specified duration.</summary>
         /// <param name="duration" value="moment.duration()">The duration for which to determine the length.</param>
         /// <returns type="Number">The length of duration in pixels.</returns>
-        
+
         switch (_units) {
             case "days":
                 return duration.asDays() * 30 * ppu;
@@ -85,19 +88,19 @@ function ChartScale(duration, ppu) {
             default:
                 return duration.asMinutes() * ppu;
         }
-    }
+    };
 
-    this.getTotalLength = function () {
+    _self.getTotalLength = function () {
         /// <summary>Finds the number of pixels needed to represent the entire duration.</summary>
         /// <returns type="Number">The length of the entire duration in pixels.</returns>
 
         return _self.getLength(duration);
-    }
+    };
 
-    this.duration = moment.duration(_value, _units);
-    this.units = _units;
-    this.value = _value;
-    this.increment = _increment;
+    _self.duration = moment.duration(_value, _units);
+    _self.units = _units;
+    _self.value = _value;
+    _self.increment = _increment;
 }
 
 function DurationInfo(value) {
@@ -107,8 +110,10 @@ function DurationInfo(value) {
     /// <field name="start" value="moment()">The start time for this reservation.</field>
     /// <field name="parts" value="[new DurationPart()]">The duration components.</field>
 
-    this.reservationId = value.ReservationID;
-    this.start = moment(value.ChargeBeginDateTime);
+    var _self = this;
+
+    _self.reservationId = value.ReservationID;
+    _self.start = moment(value.ChargeBeginDateTime);
 
     var _parts = [];
 
@@ -116,7 +121,7 @@ function DurationInfo(value) {
         _parts.push(new DurationPart(value));
     });
 
-    this.parts = _parts;
+    _self.parts = _parts;
 }
 
 function DurationPart(value) {
@@ -150,17 +155,59 @@ function DurationChart(options) {
         "S": "rgba(0, 128, 0, 0.5)",
         "O": "rgba(128, 0, 0, 0.5)",
     };
-    
+
     _self.colors = $.extend({}, defaultColors, options.colors);
-    
+
     var scaleTop = 20;
     var scaleLeft = 70.5;
+
+    var getFirstTick = function () {
+        /// <summary>Determines the time of the first vertical grid line.</summary>
+        /// <returns value="moment()">The time date range start to the first tick (vertical grid line).</returns>
+
+        // need to do some adjusting so that we start on an even increment (minute, hour, day), keeping in mind that the startDate might not be even
+        //  for minutes 0, 5, 10, 15, ..., 50, 55 is even
+        //  for hours only the top of the hour is even
+        //  for days only midnight is even
+
+        var c = _self.data.startDate.clone();
+
+        switch (_self.scale.units) {
+            case "minutes":
+                while (c.minutes() % 5 != 0)
+                    c.add(1, "minutes");
+                break;
+            case "hours":
+                while (c.minute() != 0)
+                    c.add(1, "minutes");
+                break;
+            case "days":
+                while (c.hour() != 0 || c.minute() != 0)
+                    c.add(1, "minutes");
+                break;
+        }
+
+        if (_self.data.startDate.isSame(c))
+            c.add(_self.scale.increment, _self.scale.units);
+
+        return c;
+    }
+
+    var getDurationFromStart = function (d) {
+        /// <summary>Returns the duration between two dates.</summary>
+        /// <param name="sd" value="moment()">The start date.</param>
+        /// <param name="ed" value="moment()">The end date.</param>
+        /// <returns value="moment.duration()">The duration.</returns>
+
+        var diff = d.diff(_self.data.startDate);
+        return moment.duration(diff);
+    }
 
     var drawScale = function (canvas, ctx) {
         /// <summary>Draws the chart scale.</summary>
         /// <param name="canvas" type="HTMLCanvasElement">The canvas on which to draw.</param>
         /// <param name="ctx" type="CanvasRenderingContext2D">The current drawing context.</param>
-        
+
         ctx.fillStyle = "#000000";
         ctx.font = "12px 'Courier New'";
 
@@ -183,18 +230,15 @@ function DurationChart(options) {
         ctx.lineTo(scaleLeft, canvas.height);
         ctx.stroke();
 
-        //4 pixels per minute is default
-        var i = _self.scale.increment;
-
         var prevDay = _self.data.startDate.format("MM/DD");
+        var t = getFirstTick();
 
-        while (i < _self.scale.value) {
-            var d = moment.duration(i, _self.scale.units);
-            var c = _self.data.startDate.clone().add(d);
-            var len = _self.scale.getLength(d);
-            var isMajor = _self.scale.isMajor(c);
-            var currentDay = c.format("MM/DD");
-            
+        while (t.isBefore(_self.data.endDate)) {
+            var dur = getDurationFromStart(t);
+            var len = _self.scale.getLength(dur);
+            var isMajor = _self.scale.isMajor(t);
+            var currentDay = t.format("MM/DD");
+
             if (isMajor) {
                 ctx.fillStyle = "#aaaaaa";
                 ctx.textAlign = "right";
@@ -206,7 +250,7 @@ function DurationChart(options) {
 
                     prevDay = currentDay;
 
-                    ctx.fillText(c.format("hh:mm a"), scaleLeft + len - 2, scaleTop);
+                    ctx.fillText(t.format("hh:mm a"), scaleLeft + len - 2, scaleTop);
                 }
 
                 // major tick mark color
@@ -222,7 +266,7 @@ function DurationChart(options) {
             ctx.lineTo(scaleLeft + len, canvas.height);
             ctx.stroke();
 
-            i += _self.scale.increment;
+            t.add(_self.scale.increment, _self.scale.units);
         }
 
         // get the length of the total chart duration - because we want a terminating line on the right
@@ -246,7 +290,7 @@ function DurationChart(options) {
         /// <summary>Draws event durations on the chart.</summary>
         /// <param name="canvas" type="HTMLCanvasElement">The canvas on which to draw.</param>
         /// <param name="ctx" type="CanvasRenderingContext2D">The current drawing context.</param>
-        
+
         ctx.textAlign = "right";
 
         var line = scaleTop + 26;
@@ -255,14 +299,13 @@ function DurationChart(options) {
         var drawDurationRectangle = function (info) {
             /// <summary>Draws a single reservation duration rectangle.</summary>
             /// <param name="info" type="DurationInfo">A reservation comprised of one or more duration parts.</param>
-            
+
             var left = scaleLeft - 0.5;
-            
+
             $.each(info.parts, function (index, item) {
                 var clr = _self.colors[item.durationType];
                 var width = _self.scale.getLength(item.duration); // the width of this DurationPart (item)
-                var diff = info.start.diff(_self.data.startDate);
-                var dur = moment.duration(diff); // the duration between 
+                var dur = getDurationFromStart(info.start);
                 var x = left + _self.scale.getLength(dur);
                 ctx.fillStyle = clr;
                 ctx.fillRect(x, line - 12, width, 15);
@@ -275,7 +318,7 @@ function DurationChart(options) {
             ctx.fillStyle = "#000000";
             ctx.textAlign = "right";
             ctx.fillText(item.reservationId, scaleLeft - 5.5, line);
-            
+
             drawDurationRectangle(item)
 
             // draw the right side ReservationID text
@@ -289,7 +332,7 @@ function DurationChart(options) {
             ctx.lineTo(canvas.width, line + 10.5);
             ctx.strokeStyle = "#aaaaaa";
             ctx.stroke();
-            
+
             // move to the next line
             line += 30;
         });
@@ -306,7 +349,7 @@ function DurationChart(options) {
         var maxHeight = 10000;
 
         var len = _self.scale.getTotalLength();
-        
+
         target.width = Math.min((2 * scaleLeft) + len, maxWidth);
         target.height = Math.min(scaleTop + 7 + (_self.data.durations.length * 30), maxHeight);
 
@@ -327,9 +370,9 @@ function DurationChart(options) {
 
         return this.each(function () {
             var $this = $(this);
-            
+
             var opts = $.extend({}, { "startDate": null, "endDate": null, "durations": null, "pixelsPerUnit": 4, "backgroundColor": null, "colors": null }, options, $this.data());
-            
+
             if (opts.durations) {
                 var chart = new DurationChart(opts);
                 var canvas = document.createElement("canvas");

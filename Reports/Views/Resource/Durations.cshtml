@@ -150,6 +150,8 @@ else
                             <th>ReservationID</th>
                             <th style="text-align: center;">Started</th>
                             <th style="text-align: center;">Active</th>
+                            <th style="text-align: center;">Repair</th>
+                            <th>Forgiven</th>
                             <th>BeginDateTime</th>
                             <th>EndDateTime</th>
                             <th>ActualBeginDateTime</th>
@@ -166,6 +168,8 @@ else
                             <td>{{reservationId}}</td>
                             <td style="text-align: center;">{{started}}</td>
                             <td style="text-align: center;">{{active}}</td>
+                            <td style="text-align: center;">{{repair}}</td>
+                            <td>{{forgiven}}</td>
                             <td>{{beginDateTime}}</td>
                             <td>{{endDateTime}}</td>
                             <td>{{actualBeginDateTime}}</td>
@@ -204,7 +208,7 @@ else
 }
 
 @section scripts{
-    <script src="~/Scripts/durations.js"></script>
+    <script src="~/Scripts/durations.js?v=20170823a"></script>
 
     <script>
         function updateStartDate(d) {
@@ -286,12 +290,15 @@ else
                     var totalTransferred = getTotalDuration("T", item.Parts);
                     var totalStandard = getTotalDuration("S", item.Parts);
                     var totalOvertime = getTotalDuration("O", item.Parts);
+                    var forgivenPct = ((1 - parseInt(item.ChargeMultiplier)) * 100).toFixed(1);
 
                     result.durations.push({
                         priorityGroup: item.PriorityGroup,
                         reservationId: item.ReservationID,
                         started: item.IsStarted ? "Y" : "N",
                         active: item.IsActive ? "Y" : "N",
+                        repair: item.IsRepair ? "Y" : "N",
+                        forgiven: forgivenPct + "%",
                         beginDateTime: moment(item.BeginDateTime).format("MM/DD/YYYY hh:mm:ss A"),
                         endDateTime: moment(item.EndDateTime).format("MM/DD/YYYY hh:mm:ss A"),
                         actualBeginDateTime: moment(item.ActualBeginDateTime).format("MM/DD/YYYY hh:mm:ss A"),
