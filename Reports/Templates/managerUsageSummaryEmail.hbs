@@ -98,9 +98,9 @@
         <tr bgcolor="#eeeeee">
             <td colspan="2">&nbsp;</td>
             {{#if model.ShowSubsidyColumn}}
+            <td align="right"><b>{{format_currency model.TotalNetCharge}}</b></td>
             <td align="right"><b>{{format_currency model.TotalUsageCharge}}</b></td>
             <td align="right"><b>{{format_currency model.TotalSubsidy}}</b></td>
-            <td align="right"><b>{{format_currency model.TotalNetCharge}}</b></td>
             {{else}}
             <td align="right"><b>{{format_currency model.TotalUsageCharge}}</b></td>
             {{/if}}
