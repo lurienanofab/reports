@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\Microsoft.Net.Compilers.2.3.1\build\Microsoft.Net.Compilers.props" Condition="Exists('..\packages\Microsoft.Net.Compilers.2.3.1\build\Microsoft.Net.Compilers.props')" />
-  <Import Project="..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.5\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.5\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
+  <Import Project="..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.7\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.7\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
+  <Import Project="..\packages\Microsoft.Net.Compilers.2.3.2\build\Microsoft.Net.Compilers.props" Condition="Exists('..\packages\Microsoft.Net.Compilers.2.3.2\build\Microsoft.Net.Compilers.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -24,6 +24,7 @@
     <UseGlobalApplicationHostFile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <Use64BitIISExpress />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -47,9 +48,8 @@
       <HintPath>..\packages\Handlebars.Net.1.9.0\lib\net40\Handlebars.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=1.0.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.5\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=1.0.7.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.7\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Owin, Version=3.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -80,9 +80,8 @@
       <HintPath>..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Net.Http, Version=4.1.1.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Net.Http.4.3.2\lib\net46\System.Net.Http.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="System.Net.Http, Version=4.1.1.2, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Net.Http.4.3.3\lib\net46\System.Net.Http.dll</HintPath>
     </Reference>
     <Reference Include="System.Net.Http.Formatting, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.WebApi.Client.5.2.3\lib\net45\System.Net.Http.Formatting.dll</HintPath>
@@ -104,9 +103,8 @@
       <HintPath>..\packages\System.Security.Cryptography.Primitives.4.3.0\lib\net46\System.Security.Cryptography.Primitives.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Security.Cryptography.X509Certificates, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Security.Cryptography.X509Certificates.4.3.0\lib\net461\System.Security.Cryptography.X509Certificates.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="System.Security.Cryptography.X509Certificates, Version=4.1.1.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.X509Certificates.4.3.1\lib\net461\System.Security.Cryptography.X509Certificates.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
@@ -162,11 +160,413 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\Site.css" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\comment\comment.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\comment\continuecomment.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\dialog\dialog.css" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\dialog\dialog.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\display\autorefresh.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\display\fullscreen.css" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\display\fullscreen.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\display\panel.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\display\placeholder.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\display\rulers.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\edit\closebrackets.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\edit\closetag.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\edit\continuelist.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\edit\matchbrackets.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\edit\matchtags.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\edit\trailingspace.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\fold\brace-fold.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\fold\comment-fold.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\fold\foldcode.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\fold\foldgutter.css" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\fold\foldgutter.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\fold\indent-fold.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\fold\markdown-fold.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\fold\xml-fold.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\hint\anyword-hint.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\hint\css-hint.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\hint\html-hint.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\hint\javascript-hint.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\hint\show-hint.css" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\hint\show-hint.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\hint\sql-hint.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\hint\xml-hint.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\lint\coffeescript-lint.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\lint\css-lint.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\lint\html-lint.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\lint\javascript-lint.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\lint\json-lint.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\lint\lint.css" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\lint\lint.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\lint\yaml-lint.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\merge\merge.css" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\merge\merge.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\mode\loadmode.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\mode\multiplex.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\mode\multiplex_test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\mode\overlay.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\mode\simple.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\runmode\colorize.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\runmode\runmode-standalone.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\runmode\runmode.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\runmode\runmode.node.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\scroll\annotatescrollbar.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\scroll\scrollpastend.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\scroll\simplescrollbars.css" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\scroll\simplescrollbars.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\search\jump-to-line.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\search\match-highlighter.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\search\matchesonscrollbar.css" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\search\matchesonscrollbar.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\search\search.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\search\searchcursor.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\selection\active-line.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\selection\mark-selection.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\selection\selection-pointer.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\tern\tern.css" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\tern\tern.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\tern\worker.js" />
+    <Content Include="Scripts\codemirror-5.30.0\addon\wrap\hardwrap.js" />
+    <Content Include="Scripts\codemirror-5.30.0\keymap\emacs.js" />
+    <Content Include="Scripts\codemirror-5.30.0\keymap\sublime.js" />
+    <Content Include="Scripts\codemirror-5.30.0\keymap\vim.js" />
+    <Content Include="Scripts\codemirror-5.30.0\lib\codemirror.css" />
+    <Content Include="Scripts\codemirror-5.30.0\lib\codemirror.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\apl\apl.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\apl\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\asciiarmor\asciiarmor.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\asciiarmor\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\asn.1\asn.1.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\asn.1\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\asterisk\asterisk.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\asterisk\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\brainfuck\brainfuck.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\brainfuck\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\clike\clike.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\clike\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\clike\scala.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\clike\test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\clojure\clojure.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\clojure\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\cmake\cmake.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\cmake\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\cobol\cobol.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\cobol\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\coffeescript\coffeescript.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\coffeescript\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\commonlisp\commonlisp.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\commonlisp\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\crystal\crystal.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\crystal\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\css\css.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\css\gss.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\css\gss_test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\css\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\css\less.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\css\less_test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\css\scss.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\css\scss_test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\css\test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\cypher\cypher.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\cypher\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\cypher\test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\dart\dart.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\dart\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\diff\diff.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\diff\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\django\django.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\django\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\dockerfile\dockerfile.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\dockerfile\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\dtd\dtd.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\dtd\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\dylan\dylan.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\dylan\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\dylan\test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\d\d.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\d\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\d\test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\ebnf\ebnf.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\ebnf\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\ecl\ecl.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\ecl\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\eiffel\eiffel.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\eiffel\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\elm\elm.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\elm\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\erlang\erlang.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\erlang\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\factor\factor.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\factor\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\fcl\fcl.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\fcl\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\forth\forth.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\forth\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\fortran\fortran.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\fortran\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\gas\gas.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\gas\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\gfm\gfm.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\gfm\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\gfm\test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\gherkin\gherkin.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\gherkin\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\go\go.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\go\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\groovy\groovy.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\groovy\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\haml\haml.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\haml\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\haml\test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\handlebars\handlebars.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\handlebars\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\haskell-literate\haskell-literate.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\haskell-literate\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\haskell\haskell.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\haskell\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\haxe\haxe.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\haxe\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\htmlembedded\htmlembedded.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\htmlembedded\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\htmlmixed\htmlmixed.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\htmlmixed\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\http\http.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\http\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\idl\idl.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\idl\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\javascript\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\javascript\javascript.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\javascript\json-ld.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\javascript\test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\javascript\typescript.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\jinja2\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\jinja2\jinja2.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\jsx\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\jsx\jsx.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\jsx\test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\julia\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\julia\julia.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\livescript\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\livescript\livescript.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\lua\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\lua\lua.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\markdown\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\markdown\markdown.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\markdown\test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\mathematica\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\mathematica\mathematica.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\mbox\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\mbox\mbox.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\meta.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\mirc\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\mirc\mirc.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\mllike\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\mllike\mllike.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\modelica\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\modelica\modelica.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\mscgen\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\mscgen\mscgen.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\mscgen\mscgen_test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\mscgen\msgenny_test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\mscgen\xu_test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\mumps\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\mumps\mumps.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\nginx\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\nginx\nginx.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\nsis\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\nsis\nsis.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\ntriples\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\ntriples\ntriples.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\octave\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\octave\octave.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\oz\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\oz\oz.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\pascal\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\pascal\pascal.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\pegjs\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\pegjs\pegjs.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\perl\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\perl\perl.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\php\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\php\php.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\php\test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\pig\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\pig\pig.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\powershell\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\powershell\powershell.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\powershell\test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\properties\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\properties\properties.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\protobuf\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\protobuf\protobuf.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\pug\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\pug\pug.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\puppet\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\puppet\puppet.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\python\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\python\python.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\python\test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\q\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\q\q.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\rpm\changes\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\rpm\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\rpm\rpm.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\rst\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\rst\rst.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\ruby\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\ruby\ruby.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\ruby\test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\rust\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\rust\rust.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\rust\test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\r\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\r\r.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\sass\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\sass\sass.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\sass\test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\sas\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\sas\sas.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\scheme\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\scheme\scheme.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\shell\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\shell\shell.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\shell\test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\sieve\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\sieve\sieve.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\slim\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\slim\slim.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\slim\test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\smalltalk\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\smalltalk\smalltalk.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\smarty\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\smarty\smarty.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\solr\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\solr\solr.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\soy\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\soy\soy.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\soy\test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\sparql\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\sparql\sparql.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\spreadsheet\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\spreadsheet\spreadsheet.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\sql\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\sql\sql.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\stex\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\stex\stex.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\stex\test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\stylus\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\stylus\stylus.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\swift\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\swift\swift.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\swift\test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\tcl\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\tcl\tcl.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\textile\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\textile\test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\textile\textile.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\tiddlywiki\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\tiddlywiki\tiddlywiki.css" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\tiddlywiki\tiddlywiki.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\tiki\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\tiki\tiki.css" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\tiki\tiki.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\toml\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\toml\toml.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\tornado\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\tornado\tornado.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\troff\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\troff\troff.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\ttcn-cfg\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\ttcn-cfg\ttcn-cfg.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\ttcn\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\ttcn\ttcn.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\turtle\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\turtle\turtle.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\twig\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\twig\twig.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\vbscript\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\vbscript\vbscript.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\vb\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\vb\vb.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\velocity\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\velocity\velocity.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\verilog\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\verilog\test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\verilog\verilog.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\vhdl\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\vhdl\vhdl.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\vue\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\vue\vue.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\webidl\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\webidl\webidl.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\xml\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\xml\test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\xml\xml.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\xquery\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\xquery\test.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\xquery\xquery.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\yacas\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\yacas\yacas.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\yaml-frontmatter\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\yaml-frontmatter\yaml-frontmatter.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\yaml\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\yaml\yaml.js" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\z80\index.html" />
+    <Content Include="Scripts\codemirror-5.30.0\mode\z80\z80.js" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\3024-day.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\3024-night.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\abcdef.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\ambiance-mobile.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\ambiance.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\base16-dark.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\base16-light.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\bespin.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\blackboard.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\cobalt.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\colorforth.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\dracula.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\duotone-dark.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\duotone-light.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\eclipse.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\elegant.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\erlang-dark.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\hopscotch.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\icecoder.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\isotope.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\lesser-dark.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\liquibyte.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\material.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\mbo.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\mdn-like.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\midnight.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\monokai.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\neat.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\neo.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\night.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\panda-syntax.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\paraiso-dark.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\paraiso-light.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\pastel-on-dark.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\railscasts.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\rubyblue.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\seti.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\solarized.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\the-matrix.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\tomorrow-night-bright.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\tomorrow-night-eighties.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\ttcn.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\twilight.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\vibrant-ink.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\xq-dark.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\xq-light.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\yeti.css" />
+    <Content Include="Scripts\codemirror-5.30.0\theme\zenburn.css" />
     <Content Include="Scripts\handlebars-v4.0.10.js" />
     <Content Include="Scripts\durations.js" />
     <Content Include="Scripts\userUsageSummary.js" />
     <Content Include="Scripts\managerUsageSummary.js" />
-    <None Include="Scripts\_references.js" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
@@ -177,12 +577,14 @@
     <Compile Include="Controllers\Api\ClientController.cs" />
     <Compile Include="Controllers\Api\EmailController.cs" />
     <Compile Include="Controllers\Api\ReportController.cs" />
+    <Compile Include="Controllers\Api\TemplateController.cs" />
     <Compile Include="Controllers\PreferencesController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\IndividualController.cs" />
     <Compile Include="Controllers\ResourceController.cs" />
     <Compile Include="Controllers\AdminController.cs" />
     <Compile Include="Models\DurationsModel.cs" />
+    <Compile Include="Models\EmailMessage.cs" />
     <Compile Include="Models\EmailManager.cs" />
     <Compile Include="Models\EmailPreferenceItem.cs" />
     <Compile Include="Models\EmailPreferenceModel.cs" />
@@ -191,6 +593,7 @@
     <Compile Include="Models\LabActivity.cs" />
     <Compile Include="Models\RssFeed.cs" />
     <Compile Include="Models\TemplateManager.cs" />
+    <Compile Include="Models\TemplateModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
@@ -211,11 +614,14 @@
     <Content Include="Templates\managerUsageSummaryEmail.hbs" />
     <Content Include="Templates\managerUsageSummaryReport.hbs" />
     <Content Include="Views\Resource\Durations.cshtml" />
+    <Content Include="Views\Admin\Templates.cshtml" />
+    <Content Include="Scripts\codemirror-5.30.0\LICENSE" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
     <None Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
+      <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -264,8 +670,8 @@
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.5\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.5\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
-    <Error Condition="!Exists('..\packages\Microsoft.Net.Compilers.2.3.1\build\Microsoft.Net.Compilers.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Net.Compilers.2.3.1\build\Microsoft.Net.Compilers.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.Net.Compilers.2.3.2\build\Microsoft.Net.Compilers.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Net.Compilers.2.3.2\build\Microsoft.Net.Compilers.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.7\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.1.0.7\build\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

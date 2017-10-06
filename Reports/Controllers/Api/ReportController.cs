@@ -70,7 +70,7 @@ namespace Reports.Controllers.Api
                     .Distinct(comparer)
                     .FirstOrDefault();
 
-                int count = EmailManager.SendManagerSummaryReport(model.Period, new[] { mgr }, model.IncludeRemote);
+                int count = EmailManager.SendManagerSummaryReport(model.CurrentUserClientID, model.Period, new[] { mgr }, model.Message, model.CCAddress, model.Debug, model.IncludeRemote);
 
                 return new EmailReportResult() { Count = count, ErrorMessage = null };
             }

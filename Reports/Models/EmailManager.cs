@@ -1,5 +1,4 @@
 ﻿using LNF;
-using LNF.Cache;
 using LNF.CommonTools;
 using LNF.Email;
 using LNF.Models.Reporting;
@@ -11,23 +10,63 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
-using System.Web;
 
 namespace Reports.Models
 {
     public static class EmailManager
     {
-        public static int SendManagerSummaryReport(DateTime period, bool includeRemote)
+        public static IEnumerable<ClientItem> GetManagers(int currentUserClientId, string group, DateTime period, bool includeRemote)
         {
-            // Get all active managers and check for any that do not
-            // already have a preference. They will be opted in by default.
-
             var activeManagers = ClientItemUtility.SelectActiveManagers(period);
 
-            return SendManagerSummaryReport(period, activeManagers, includeRemote);
+            IEnumerable<ClientItem> filtered;
+
+            switch (group)
+            {
+                case "all-internal":
+                    filtered = activeManagers.Where(x => x.IsInternal);
+                    break;
+                case "all-external":
+                    filtered = activeManagers.Where(x => !x.IsInternal);
+                    break;
+                case "all-internal-external":
+                    filtered = activeManagers;
+                    break;
+                case "technical-internal":
+                    filtered = activeManagers.Where(x => x.IsManager && !x.IsFinManager && x.IsInternal);
+                    break;
+                case "technical-external":
+                    filtered = activeManagers.Where(x => x.IsManager && !x.IsFinManager && !x.IsInternal);
+                    break;
+                case "technical-internal-external":
+                    filtered = activeManagers.Where(x => x.IsManager && !x.IsFinManager);
+                    break;
+                case "financial-internal":
+                    filtered = activeManagers.Where(x => !x.IsManager && x.IsFinManager && x.IsInternal);
+                    break;
+                case "financial-external":
+                    filtered = activeManagers.Where(x => !x.IsManager && x.IsFinManager && !x.IsInternal);
+                    break;
+                case "financial-internal-external":
+                    filtered = activeManagers.Where(x => !x.IsManager && x.IsFinManager);
+                    break;
+                case "technical-financial-internal":
+                    filtered = activeManagers.Where(x => x.IsManager && x.IsFinManager && x.IsInternal);
+                    break;
+                case "technical-financial-external":
+                    filtered = activeManagers.Where(x => x.IsManager && x.IsFinManager && !x.IsInternal);
+                    break;
+                case "technical-financial-internal-external":
+                    filtered = activeManagers.Where(x => x.IsManager && x.IsFinManager);
+                    break;
+                default:
+                    throw new NotImplementedException("Unknown recipient group.");
+            }
+
+            return filtered;
         }
 
-        public static int SendManagerSummaryReport(DateTime period, IEnumerable<ClientItem> managers, bool includeRemote)
+        public static IEnumerable<EmailMessage> CreateManagerUsageSummaryEmails(int currentUserClientId, DateTime period, IEnumerable<ClientItem> managers, bool includeRemote)
         {
             int managerSummaryReportEmailPreferenceId = 1;
 
@@ -79,31 +118,76 @@ namespace Reports.Models
                 }
             }
 
-            int count = 0;
-
-            string debugEmail = ConfigurationManager.AppSettings["DebugEmail"];
-
             foreach (var args in sendTo)
             {
                 if (args.Model.Accounts.Count() > 0)
                 {
-                    string toAddr = string.IsNullOrEmpty(debugEmail) ? args.Manager.Email : debugEmail;
-
-                    var sendResult = Providers.Email.SendMessage(new SendMessageArgs()
+                    var emailMessage = new EmailMessage()
                     {
-                        ClientID = CacheManager.Current.CurrentUser.ClientID,
-                        Caller = "Reports.Models.EmailManager.SendManagerSummaryReport",
+                        RecipientEmail = args.Manager.Email,
+                        RecipientName = args.Manager.LName + ", " + args.Manager.FName,
+                        SenderEmail = "lnf-system@umich.edu",
+                        SenderName = "LNF System",
                         Subject = string.Format("LNF Manager Usage Summary Report for {0:MMM yyyy}", period),
-                        Body = GetManagerSummaryReportBody(args),
-                        From = "lnf-system@umich.edu",
-                        DisplayName = "LNF System",
-                        To = new[] { toAddr },
-                        IsHtml = true
-                    });
+                        Body = GetManagerSummaryReportBody(args)
+                    };
 
-                    if (sendResult.Success)
-                        count += 1;
+                    yield return emailMessage;
                 }
+            }
+        }
+
+        public static int SendManagerSummaryReport(int currentUserClientId, DateTime period, string message, string ccaddr, bool debug, bool includeRemote)
+        {
+            // Get all active managers and check for any that do not
+            // already have a preference. They will be opted in by default.
+
+            var activeManagers = GetManagers(currentUserClientId, "all-internal-external", period, includeRemote);
+            return SendManagerSummaryReport(currentUserClientId, period, activeManagers, message, ccaddr, debug, includeRemote);
+        }
+
+        public static int SendManagerSummaryReport(int currentUserClientId, DateTime period, IEnumerable<ClientItem> managers, string message, string ccaddr, bool debug, bool includeRemote)
+        {
+            var emails = CreateManagerUsageSummaryEmails(currentUserClientId, period, managers, includeRemote);
+            return SendManagerSummaryReport(currentUserClientId, emails, message, ccaddr, debug);
+        }
+
+        public static int SendManagerSummaryReport(int currentUserClientId, IEnumerable<EmailMessage> emails, string message, string ccaddr, bool debug)
+        {
+            int count = 0;
+
+            string debugEmail = ConfigurationManager.AppSettings["DebugEmail"];
+
+            string[] cc = !string.IsNullOrEmpty(ccaddr) ? new[] { ccaddr } : null;
+
+            foreach (var e in emails)
+            {
+                string toAddr = debug && !string.IsNullOrEmpty(debugEmail) ? debugEmail : e.RecipientEmail;
+                
+                string body;
+
+                if (string.IsNullOrEmpty(message))
+                    body = e.Body.Replace("%message", string.Empty);
+                else
+                    body = e.Body.Replace("%message", message + "<br/><br/>");
+
+                var sendMessageArgs = new SendMessageArgs()
+                {
+                    ClientID = currentUserClientId,
+                    Caller = "Reports.Models.EmailManager.SendManagerSummaryReport",
+                    Subject = e.Subject,
+                    Body = body,
+                    From = e.SenderEmail,
+                    DisplayName = e.SenderName,
+                    To = new[] { toAddr },
+                    Cc = cc,
+                    IsHtml = true
+                };
+
+                var sendResult = Providers.Email.SendMessage(sendMessageArgs);
+
+                if (sendResult.Success)
+                    count += 1;
             }
 
             return count;
@@ -111,8 +195,6 @@ namespace Reports.Models
 
         private static string GetManagerSummaryReportBody(ManagerSummaryReportEmailArgs args)
         {
-            string setting = ConfigurationManager.AppSettings["TemplateDirec"];
-
             var model = args.Model;
             var client = args.Manager;
             var width = args.Model.ShowSubsidyColumn ? 1000 : 800;
@@ -159,7 +241,7 @@ namespace Reports.Models
 
             //string footer = "";
 
-            
+
 
             //result += footer;
 

@@ -19,7 +19,7 @@ namespace Reports.Tests
                 var mgr1 = ClientItemUtility.CreateClientItem(2823);
                 var mgr2 = ClientItemUtility.CreateClientItem(245);
                 var expected = 2;
-                var actual = EmailManager.SendManagerSummaryReport(period, new ClientItem[] { mgr1, mgr2 }, false);
+                var actual = EmailManager.SendManagerSummaryReport(1301, period, new ClientItem[] { mgr1, mgr2 }, string.Empty, string.Empty, false, false);
                 Assert.AreEqual(expected, actual);
             }
         }

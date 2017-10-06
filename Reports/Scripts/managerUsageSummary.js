@@ -3,7 +3,12 @@
         return this.each(function () {
             var $this = $(this);
 
-            var opts = $.extend({}, { "apiUrl": "api/", "clientId": 0, "period": null }, options, $this.data());
+            var opts = $.extend({}, { "apiUrl": "api/", "clientId": 0, "period": null, "currentUserClientId": 0 }, options, $this.data());
+
+            if (opts.currentUserClientId === 0) {
+                alert("currentUserClientId is required.");
+                return;
+            }
 
             var lastClientId = 0;
 
@@ -14,7 +19,7 @@
             };
 
             var showAlertWithXhr = function (xhr, url) {
-                if (xhr.status == 404)
+                if (xhr.status === 404)
                     showAlert("Page not found: " + url);
                 else if (xhr.responseJSON && xhr.responseJSON.ExceptionMessage)
                     showAlert(xhr.responseJSON.ExceptionMessage);
@@ -22,17 +27,17 @@
                     showAlert(xhr.statusText);
                 else
                     showAlert("An error occurred.");
-            }
+            };
 
             var showMessage = function (msg) {
                 var alert = $(".alert-success", $this);
                 $(".alert-message", alert).html(msg);
                 alert.show();
-            }
+            };
 
             var getDisplayName = function (client) {
                 return client.LName + ", " + client.FName;
-            }
+            };
 
             var getPeriod = function () {
                 return moment(new Date($(".period", $this).val()));
@@ -51,14 +56,14 @@
                 });
 
                 return def.promise();
-            }
+            };
 
             var loadManagers = function () {
                 var def = $.Deferred();
 
                 var managers = $("select.managers", $this);
 
-                if (managers.length == 0) {
+                if (managers.length === 0) {
                     $(".run-report", $this).prop("disabled", false);
                     $(".email-report", $this).prop("disabled", false);
                     def.resolve();
@@ -87,7 +92,7 @@
                         managers.html("")
                             .append($("<option/>").val(0).text("-- Select --"))
                             .append($.map(data, function (item, index) {
-                                return $("<option/>").val(item.ClientID).text(getDisplayName(item)).prop("selected", item.ClientID == lastClientId);
+                                return $("<option/>").val(item.ClientID).text(getDisplayName(item)).prop("selected", item.ClientID === lastClientId);
                             }));
                         def.resolve();
                     }).fail(function (jqXHR, textStatus, errorThrown) {
@@ -106,7 +111,7 @@
                 return def.promise();
             };
 
-            var emailReport = function (period, clientId) {
+            var emailReport = function (period, clientId, message, ccaddr, debug) {
                 $(".alert-danger", $this).hide();
                 $(".alert-success", $this).hide();
 
@@ -119,13 +124,26 @@
 
                         var url = opts.apiUrl + "report/manager-usage-summary/email";
 
+                        /*
+                        public class EmailReportModel
+                        {
+                            public int ClientID { get; set; }
+                            public int CurrentUserClientID { get; set; }
+                            public DateTime Period { get; set; }
+                            public string Message { get; set; }
+                            public string CCAddress { get; set; }
+                            public bool Debug { get; set; }
+                            public bool IncludeRemote { get; set; }
+                        }
+                        */
+
                         $.ajax({
                             "url": url,
                             "method": "POST",
-                            "data": { "ClientID": clientId, "Period": period.format("YYYY-MM-DD") }
+                            "data": { "ClientID": clientId, "CurrentUserClientID": opts.currentUserClientId, "Period": period.format("YYYY-MM-DD"), "Message": message, "CCAddress": ccaddr, "Debug": debug, "IncludeRemote": false }
                         }).done(function (data, textStatus, jqXHR) {
                             if (data.ErrorMessage)
-                                showAlert(data.ErrorMessage)
+                                showAlert(data.ErrorMessage);
                             else
                                 showMessage("Email report complete. Emails sent: " + data.Count);
                         }).fail(function (jqXHR, textStatus, errorThrown) {
@@ -141,7 +159,7 @@
                 } else {
                     showAlert("Please select a manager.");
                 }
-            }
+            };
 
             initTemplate().done(function (tpl) {
                 var displayReport = function (model) {
@@ -149,7 +167,7 @@
                         "model": model,
                         "class": "col-md-" + (model.ShowSubsidyColumn ? "8" : "5")
                     }));
-                }
+                };
 
                 var loadReport = function (period, clientId) {
                     $(".alert-danger", $this).hide();
@@ -183,7 +201,7 @@
                     } else {
                         showAlert("Please select a manager.");
                     }
-                }
+                };
 
                 $this.on("click", ".run-report", function (e) {
                     var period = getPeriod();
@@ -192,7 +210,13 @@
                 }).on("click", ".email-report", function (e) {
                     var period = getPeriod();
                     var clientId = $(".managers", $this).val();
-                    emailReport(period, clientId);
+                    var message = $(".message", $this).val();
+                    var ccaddr = $(".ccaddr", $this).val();
+                    var debug = $(".debug", $this).prop("checked");
+
+                    console.log({ "period": period, "clientId": clientId, "message": message, "ccaddr": ccaddr, "debug": debug });
+
+                    emailReport(period, clientId, message, ccaddr, debug);
                 }).on("change", ".period", function (e) {
                     loadManagers();
                 });

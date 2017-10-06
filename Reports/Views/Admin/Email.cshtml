@@ -1,6 +1,30 @@
-﻿@{
+﻿@using LNF.Cache;
+@using LNF.CommonTools;
+@using System.Configuration;
+
+@{
     ViewBag.Title = "Reports Admin";
+
     string message = ViewBag.Message;
+
+    DateTime priorPeriod = DateTime.Now.FirstOfMonth().AddMonths(-1);
+
+    string debugEmail = ConfigurationManager.AppSettings["DebugEmail"];
+
+    string currentUserEmail = CacheManager.Current.CurrentUser.Email;
+}
+
+@section styles{
+    <style>
+        .working {
+            height: 32px;
+            line-height: 32px;
+            padding-left: 40px;
+            background-image: url(//ssel-apps.eecs.umich.edu/static/images/ajax-loader.gif);
+            background-repeat: no-repeat;
+            background-position: left center;
+        }
+    </style>
 }
 
 <h3>
@@ -19,14 +43,136 @@
     </div>
 }
 
-<div class="panel panel-default">
+<div class="checkbox">
+    <label>
+        <input type="checkbox" class="debug"> Debug <em class="text-muted">(Send all messages to @debugEmail only)</em>
+    </label>
+</div>
+
+<div class="panel panel-default manager-usage-summary">
     <div class="panel-heading">
-        <h3 class="panel-title">Send Email</h3>
+        <h3 class="panel-title">Send Manager Usage Summary Email</h3>
     </div>
     <div class="panel-body">
-        @using (Html.BeginForm("Admin", "Home", FormMethod.Post))
-        {
-            <button type="submit" name="command" value="send-manager-summary-report" class="btn btn-default">Send Manager Summary Report</button>
-        }
+        <div class="row">
+            <div class="col-sm-5">
+                <input type="hidden" name="Period" class="period" value="@priorPeriod.ToString("yyyy-MM-dd")" />
+
+                <div class="form-group">
+                    <label>Additional Message</label>
+                    <textarea class="form-control message"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>CC Address</label>
+                    <input type="text" class="form-control ccaddr" value="@currentUserEmail" />
+                </div>
+
+                <div class="form-group">
+                    <label>Managers</label>
+                    <div class="input-group">
+                        <select class="form-control recipient-group" name="RecipientGroup">
+                            <option value="technical-internal">Internal Technical Managers</option>
+                            <option value="financial-internal">Internal Financial Managers</option>
+                            <option value="technical-financial-internal">Internal Technical and Financial Managers</option>
+                            <option value="technical-external">External Technical Managers</option>
+                            <option value="financial-external">External Financial Managers</option>
+                            <option value="technical-financial-external">External Technical and Financial Managers</option>
+                            <option value="technical-internal-external">All Technical Managers</option>
+                            <option value="financial-internal-external">All Financial Managers</option>
+                            <option value="technical-financial-internal-external">All Technical and Financial Managers</option>
+                        </select>
+                        <span class="input-group-btn">
+                            <a href="#" class="btn btn-default view-recipients">View Recipients</a>
+                            <a href="#" class="btn btn-default send-emails">Send Emails</a>
+                        </span>
+                    </div>
+                </div>
+
+                <div style="margin-top: 10px;">
+                    <div class="working" style="display: none;">
+                        This may take a few minutes...
+                    </div>
+
+                    <div class="result"></div>
+
+                    <div class="recipient-list"></div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<script id="recipient-list-template" type="text/x-handlebars-template">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each this}}
+            <tr>
+                <td>{{Name}}</td>
+                <td>{{Email}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</script>
+
+@section scripts{
+    <script>
+        var template = $("#recipient-list-template").html();
+
+        var tpl = Handlebars.compile(template);
+
+        $(".manager-usage-summary").on("click", ".view-recipients", function (e) {
+            e.preventDefault();
+
+            var recipientGroup = $(".manager-usage-summary .recipient-group").val();
+            var period = $(".manager-usage-summary .period").val();
+            var remote = false;
+            var url = '@Url.Action("GetManagerUsageSummaryEmailRecipients", "Admin")';
+
+            $(".manager-usage-summary .recipient-list").hide();
+            $(".manager-usage-summary .working").show();
+
+            $.ajax({
+                "url": url,
+                "data": {"group": recipientGroup, "period": period, "remote": remote}
+            }).done(function (data) {
+                $(".manager-usage-summary .working").hide();
+                $(".manager-usage-summary .recipient-list").html(tpl(data)).show();
+            }).fail(function () {
+                $(".manager-usage-summary .working").hide();
+                $(".manager-usage-summary .recipient-list").html($("<div/>").css({ "color": "red", "font-weight": "bold" }).html("An error occurred.")).show();
+            });
+        }).on("click", ".send-emails", function (e) {
+            e.preventDefault();
+
+            var recipientGroup = $(".manager-usage-summary .recipient-group").val();
+            var period = $(".manager-usage-summary .period").val();
+            var message = $(".manager-usage-summary .message").val();
+            var ccaddr = $(".manager-usage-summary .ccaddr").val();
+            var debug = $(".debug").prop("checked");
+            var remote = false;
+            var url = '@Url.Action("SendManagerUsageSummaryEmails", "Admin")';
+
+            $(".manager-usage-summary .result").hide();
+            $(".manager-usage-summary .working").show();
+
+            $.ajax({
+                "url": url,
+                "data": { "group": recipientGroup, "period": period, "message": message, "ccaddr": ccaddr, "debug": debug, "remote": remote }
+            }).done(function (data) {
+                $(".manager-usage-summary .working").hide();
+                $(".manager-usage-summary .result").html($("<div/>").css({ "margin-bottom": "10px", "font-weight": "bold" }).html(data.message)).show();
+            }).fail(function () {
+                $(".manager-usage-summary .working").hide();
+                $(".manager-usage-summary .result").html($("<div/>").css({ "color": "red", "font-weight": "bold" }).html("An error occurred.")).show();
+            });
+        });
+    </script>
+}

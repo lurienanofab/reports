@@ -1,4 +1,8 @@
-﻿function ChartData(opts) {
+﻿/**
+ * 
+ * @param {{startDate: string, endDate: string}} opts The options used to create the object.
+ */
+function ChartData(opts) {
     /// <summary>Determines the chart scale. Handles convertions of durations to pixel lengths.</summary>
     /// <param name="opts" value="{startDate:'',endDate:'',durations:[{ReservationID:0,ChargeBeginDateTime:'',Parts:[{DurationType:'',Duration:''}]}]}">The total chart duration.</param>
     /// <field name="startDate" value="moment()">The date range start date for the data.</field>
@@ -8,7 +12,10 @@
 
     var _self = this;
 
-    _self.startDate = moment(opts.startDate);
+    /** @type {number} */
+    var sd = moment(opts.startDate);
+    _self.startDate = sd;
+
     _self.endDate = moment(opts.endDate);
 
     var diff = _self.endDate.diff(_self.startDate);
@@ -48,7 +55,7 @@ function ChartScale(duration, ppu) {
         // greater than 1 day
         _value = duration.asHours();
         _units = "hours";
-        _increment = 1 // one tick mark for every one hour
+        _increment = 1; // one tick mark for every one hour
     } else {
         _value = totalMinutes;
         _units = "minutes";
@@ -65,13 +72,13 @@ function ChartScale(duration, ppu) {
         switch (_units) {
             case "days":
                 // major tick mark every 7 days
-                return time.days() % 7 == 0;
+                return time.days() % 7 === 0;
             case "hours":
                 // major tick mark every 4 hours
-                return time.hours() % 4 == 0;
+                return time.hours() % 4 === 0;
             default:
                 // major tick mark every 30 minutes
-                return time.minutes() % 30 == 0
+                return time.minutes() % 30 === 0;
         }
     };
 
@@ -146,14 +153,14 @@ function DurationChart(options) {
     var _self = this;
 
     _self.pixelsPerUnit = isNaN(options.pixelsPerUnit) ? 4 : parseInt(options.pixelsPerUnit);
-    _self.backgroundColor = (options.backgroundColor) ? new String(options.backgroundColor) : null;
+    _self.backgroundColor = options.backgroundColor ? new String(options.backgroundColor) : null;
     _self.data = new ChartData(options);
     _self.scale = new ChartScale(_self.data.totalDuration, _self.pixelsPerUnit);
 
     var defaultColors = {
         "T": "rgba(204, 204, 0, 0.5)",
         "S": "rgba(0, 128, 0, 0.5)",
-        "O": "rgba(128, 0, 0, 0.5)",
+        "O": "rgba(128, 0, 0, 0.5)"
     };
 
     _self.colors = $.extend({}, defaultColors, options.colors);
@@ -174,15 +181,15 @@ function DurationChart(options) {
 
         switch (_self.scale.units) {
             case "minutes":
-                while (c.minutes() % 5 != 0)
+                while (c.minutes() % 5 !== 0)
                     c.add(1, "minutes");
                 break;
             case "hours":
-                while (c.minute() != 0)
+                while (c.minute() !== 0)
                     c.add(1, "minutes");
                 break;
             case "days":
-                while (c.hour() != 0 || c.minute() != 0)
+                while (c.hour() !== 0 || c.minute() !== 0)
                     c.add(1, "minutes");
                 break;
         }
@@ -191,7 +198,7 @@ function DurationChart(options) {
             c.add(_self.scale.increment, _self.scale.units);
 
         return c;
-    }
+    };
 
     var getDurationFromStart = function (d) {
         /// <summary>Returns the duration between two dates.</summary>
@@ -201,7 +208,7 @@ function DurationChart(options) {
 
         var diff = d.diff(_self.data.startDate);
         return moment.duration(diff);
-    }
+    };
 
     var drawScale = function (canvas, ctx) {
         /// <summary>Draws the chart scale.</summary>
@@ -245,7 +252,7 @@ function DurationChart(options) {
 
                 // check to ensure a tick mark label is not too close to the left side start date text - skip if closer than 70 pixels
                 if (len > 70) {
-                    if (prevDay != currentDay)
+                    if (prevDay !== currentDay)
                         ctx.fillText(currentDay, scaleLeft + len - 2, scaleTop - 10);
 
                     prevDay = currentDay;
@@ -262,7 +269,7 @@ function DurationChart(options) {
 
             // draws the vertical tick mark line (major or minor)
             ctx.beginPath();
-            ctx.moveTo(scaleLeft + len, (isMajor) ? verticalLineTop : horizontalLineTop);
+            ctx.moveTo(scaleLeft + len, isMajor ? verticalLineTop : horizontalLineTop);
             ctx.lineTo(scaleLeft + len, canvas.height);
             ctx.stroke();
 
@@ -270,7 +277,7 @@ function DurationChart(options) {
         }
 
         // get the length of the total chart duration - because we want a terminating line on the right
-        var len = _self.scale.getTotalLength();
+        len = _self.scale.getTotalLength();
 
         // draw the vertical line at the end of the date range
         ctx.strokeStyle = "#000000";
@@ -311,7 +318,7 @@ function DurationChart(options) {
                 ctx.fillRect(x, line - 12, width, 15);
                 left += width;
             });
-        }
+        };
 
         $.each(_self.data.durations, function (index, item) {
             // draw the left side ReservationID text
@@ -319,7 +326,7 @@ function DurationChart(options) {
             ctx.textAlign = "right";
             ctx.fillText(item.reservationId, scaleLeft - 5.5, line);
 
-            drawDurationRectangle(item)
+            drawDurationRectangle(item);
 
             // draw the right side ReservationID text
             ctx.fillStyle = "#000000";
@@ -350,8 +357,8 @@ function DurationChart(options) {
 
         var len = _self.scale.getTotalLength();
 
-        target.width = Math.min((2 * scaleLeft) + len, maxWidth);
-        target.height = Math.min(scaleTop + 7 + (_self.data.durations.length * 30), maxHeight);
+        target.width = Math.min(2 * scaleLeft + len, maxWidth);
+        target.height = Math.min(scaleTop + 7 + _self.data.durations.length * 30, maxHeight);
 
         if (_self.backgroundColor) {
             context.fillStyle = _self.backgroundColor;

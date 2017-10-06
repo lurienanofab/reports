@@ -1,7 +1,8 @@
-﻿using Reports.Models;
+﻿using LNF.Models.Reporting;
+using Reports.Models;
+using System;
 using System.Collections.Generic;
 using System.Web.Http;
-using System;
 
 namespace Reports.Controllers.Api
 {
