@@ -27,7 +27,7 @@
 <h3>
     @Html.ActionLink("Reports", "Index", "Home")
     <span>/</span>
-    <span>Email Admin</span>
+    <span>Templates</span>
 </h3>
 
 <div class="panel panel-default template-panel" data-report="manager-usage-summary">
@@ -74,57 +74,55 @@
             var $panel = $(this);
             var report = $panel.data("report");
 
+            // initialization
+            $(".template-form", $panel).each(function () {
+                var $form = $(this);
+
+                // setup the editor
+                var $container = $(".template-editor-container", $form);
+                var $ed = $(".template-editor", $container);
+                var editor = CodeMirror.fromTextArea($ed[0], { "value": "", "mode": "handlebars" });
+                $container.data("editor", editor);
+
+                $form.on("click", ".save-template", function (e) {
+                    e.preventDefault();
+
+                    var templateId = $form.data("template-id");
+                    var templateName = $form.data("template-name");
+                    var content = editor.getValue();
+                    var method = templateId === 0 ? "PUT" : "POST";
+
+                    console.log("length: " + content.length);
+
+                    $.ajax({
+                        "url": url,
+                        "data": { "TemplateID": templateId, "TemplateName": templateName, "TemplateContent": content, "Report": report },
+                        "method": method
+                    }).done(function (data) {
+                        $form.data("template-id", data);
+                        $(".result", $form).html($("<div/>").css({ "color": "#008000" }).html("Template saved OK."));
+                    }).fail(function () {
+                        $(".result", $form).html($("<div/>").css({ "color": "#ff0000" }).html("An error occurred."));
+                    });
+                });
+            });
+
             $.ajax({
                 "url": url,
                 "data": { "report": report },
                 "method": "GET"
             }).done(function (data) {
                 if (data.length > 0) {
-                    $.each(data, function (value, index) {
-                        console.log(index);
-                        console.log(value);
-
+                    $.each(data, function (index, value) {
                         var $form = $(".template-form[data-template-name='" + value.TemplateName + "']", $panel);
-
                         if ($form.length > 0) {
                             var $container = $(".template-editor-container", $form);
-                            var $ed = $(".template-editor", $container);
-                            var editor = CodeMirror.fromTextArea($ed[0], { "value": value.TemplateContent, "mode": "handlebars" });
-                            $container.data("template-id", value.TemplateID);
+                            var editor = $container.data("editor");
+                            editor.getDoc().setValue(value.TemplateContent);
+                            $form.data("template-id", value.TemplateID);
                         }
                     });
-                } else {
-                    $(".template-editor-container", $panel).each(function () {
-                        var $container = $(this);
-                        var $ed = $(".template-editor", $container);
-                        var editor = CodeMirror.fromTextArea($ed[0], { "value": "", "mode": "handlebars" });
-                        $container.data("template-id", 0);
-                    });
                 }
-
-                $(".template-form", $panel).each(function () {
-                    var $form = $(this);
-
-                    var templateId = $form.data("template-id");
-                    var templateName = $form.data("template-name");
-
-                    $form.on("click", ".save-template", function (e) {
-                        e.preventDefault();
-
-                        var method = template === 0 ? "PUT" : "POST";
-
-                        $.ajax({
-                            "url": url,
-                            "data": { "TemplateID": templateId, "TemplateName": templateName, "TemplateContent": content, "Report": report },
-                            "method": method
-                        }).done(function (data) {
-                            $form.data("template-id", data);
-                            $(".result", $form).html($("<div/>").css({ "color": "#008000" }).html("Template saved OK."));
-                        }).fail(function () {
-                            $(".result", $form).html($("<div/>").css({ "color": "#ff0000" }).html("An error occurred."));
-                        });
-                    });
-                });
             });
         });
     </script>

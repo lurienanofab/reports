@@ -92,7 +92,9 @@ namespace Reports.Models
 
                     DA.Current.Insert(p);
 
-                    var model = ReportGenerator.CreateManagerUsageSummary(period, mgr, includeRemote);
+                    var items = ReportGenerator.GetManagerUsageSummaryItems(mgr.ClientID, period, includeRemote);
+
+                    var model = ReportGenerator.CreateManagerUsageSummary(period, mgr, items);
 
                     if (model.Accounts.Count() > 0)
                     {
@@ -108,7 +110,9 @@ namespace Reports.Models
                     {
                         // client has not opted out
 
-                        var model = ReportGenerator.CreateManagerUsageSummary(period, mgr, includeRemote);
+                        var items = ReportGenerator.GetManagerUsageSummaryItems(mgr.ClientID, period, includeRemote);
+
+                        var model = ReportGenerator.CreateManagerUsageSummary(period, mgr, items);
 
                         if (model.Accounts.Count() > 0)
                         {
@@ -118,6 +122,10 @@ namespace Reports.Models
                 }
             }
 
+            string senderEmail = ConfigurationManager.AppSettings["ManagerUsageSummarySenderEmail"]; //lnf-system@umich.edu
+            string senderName = ConfigurationManager.AppSettings["ManagerUsageSummarySenderName"]; //LNF System
+            string subject = ConfigurationManager.AppSettings["ManagerUsageSummarySubject"]; //LNF Manager Usage Summary Report for {0:MMM yyyy}
+
             foreach (var args in sendTo)
             {
                 if (args.Model.Accounts.Count() > 0)
@@ -126,9 +134,9 @@ namespace Reports.Models
                     {
                         RecipientEmail = args.Manager.Email,
                         RecipientName = args.Manager.LName + ", " + args.Manager.FName,
-                        SenderEmail = "lnf-system@umich.edu",
-                        SenderName = "LNF System",
-                        Subject = string.Format("LNF Manager Usage Summary Report for {0:MMM yyyy}", period),
+                        SenderEmail = senderEmail,
+                        SenderName = senderName,
+                        Subject = string.Format(subject, period),
                         Body = GetManagerSummaryReportBody(args)
                     };
 

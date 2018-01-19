@@ -124,19 +124,6 @@
 
                         var url = opts.apiUrl + "report/manager-usage-summary/email";
 
-                        /*
-                        public class EmailReportModel
-                        {
-                            public int ClientID { get; set; }
-                            public int CurrentUserClientID { get; set; }
-                            public DateTime Period { get; set; }
-                            public string Message { get; set; }
-                            public string CCAddress { get; set; }
-                            public bool Debug { get; set; }
-                            public bool IncludeRemote { get; set; }
-                        }
-                        */
-
                         $.ajax({
                             "url": url,
                             "method": "POST",
@@ -214,11 +201,13 @@
                     var ccaddr = $(".ccaddr", $this).val();
                     var debug = $(".debug", $this).prop("checked");
 
-                    console.log({ "period": period, "clientId": clientId, "message": message, "ccaddr": ccaddr, "debug": debug });
-
                     emailReport(period, clientId, message, ccaddr, debug);
                 }).on("change", ".period", function (e) {
-                    loadManagers();
+                    var managers = $(".managers", $this);
+                    var clientId = managers.val();
+                    loadManagers().done(function () {
+                        $("option[value='" + clientId + "']", managers).prop("selected", true);
+                    });
                 });
 
                 loadManagers().done(function () {

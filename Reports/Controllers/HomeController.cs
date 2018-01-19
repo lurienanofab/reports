@@ -7,6 +7,7 @@ using LNF.Repository.Reporting;
 using System;
 using System.Linq;
 using System.Web.Mvc;
+using Reports.Models;
 
 namespace Reports.Controllers
 {
@@ -79,6 +80,20 @@ namespace Reports.Controllers
                 return RedirectToAction("Index");
             else
                 return Redirect(Convert.ToString(Session["return-to"]));
+        }
+
+        [Route("template/{report}/{name}")]
+        public ActionResult Template(string report, string name)
+        {
+            try
+            {
+                var templateContent = TemplateManager.GetTemplate(report, name);
+                return Content(templateContent, "text/x-handlebars-template");
+            }
+            catch (TemplateNotFoundException ex)
+            {
+                return new HttpNotFoundResult(ex.Message);
+            }
         }
     }
 }

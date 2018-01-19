@@ -1,9 +1,11 @@
-﻿using HandlebarsDotNet;
+﻿using System.Linq;
+using HandlebarsDotNet;
 using System;
-using System.Collections.Generic;
 using System.Configuration;
-using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using LNF.Repository;
+using LNF.Repository.Reporting;
 
 namespace Reports.Models
 {
@@ -129,14 +131,40 @@ namespace Reports.Models
                     writer.WriteSafeString("[mail_to: at least one parameter is required]");
             });
 
-            var templateDir = ConfigurationManager.AppSettings["TemplateDirectory"];
+            //var templateDir = ConfigurationManager.AppSettings["TemplateDirectory"];
+            //var template = File.ReadAllText(Path.Combine(templateDir, "managerUsageSummaryEmail.hbs"))
+            var template = GetTemplate("manager-usage-summary", "email");
 
-            _managerUsageSummaryEmailTemplate = Handlebars.Compile(File.ReadAllText(Path.Combine(templateDir, "managerUsageSummaryEmail.hbs")));
+            _managerUsageSummaryEmailTemplate = Handlebars.Compile(template);
         }
 
         public static string ManagerUsageSummaryEmailTemplate(object arg)
         {
             return _managerUsageSummaryEmailTemplate(arg);
+        }
+
+        public static string GetTemplate(string report, string name)
+        {
+            var template = DA.Current.Query<Template>().FirstOrDefault(x => x.Report == report && x.TemplateName == name);
+            if (template == null)
+                throw new TemplateNotFoundException(report, name);
+            else
+                return template.TemplateContent;
+        }
+    }
+
+    public class TemplateNotFoundException : Exception
+    {
+        public string Report { get; }
+        public string Name { get; }
+
+
+        public override string Message => string.Format("Template not found [{0}/{1}].", Report, Name);
+
+        public TemplateNotFoundException(string report, string name)
+        {
+            Report = report;
+            Name = name;
         }
     }
 }

@@ -13,26 +13,69 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Web.Http;
+using LNF.CommonTools;
 
 namespace Reports.Controllers.Api
 {
     public class ReportController : ApiController
     {
+        [Obsolete]
         [Route("api/report/monthly-usage-detail")]
-        [Route("api/report/manager-usage-detail")]
         public HttpResponseMessage GetManagerUsageDetail(DateTime sd, DateTime ed, string username, bool remote = false)
         {
-            var mgr = DA.Current.Query<Client>().FirstOrDefault(x => x.UserName == username);
+            return GetManagerUsageDetail(sd, ed, username, remote, "xml");
+        }
 
-            if (mgr == null)
-                throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.NotFound, "Manager not found."));
+        [Route("api/report/manager-usage-detail/{format?}")]
+        public HttpResponseMessage GetManagerUsageDetail(string username = null, bool remote = false, string format = "json")
+        {
+            DateTime ed = DateTime.Now.Date;
+            DateTime fom = ed.FirstOfMonth();
+            DateTime sd = fom.AddYears(-1);
+            return GetManagerUsageDetail(sd, ed, username, remote, format);
+        }
 
-            var xdoc = ReportGenerator.GetManagerUsageDetail(sd, ed, mgr, remote);
+        [Route("api/report/manager-usage-detail/{format?}")]
+        public HttpResponseMessage GetManagerUsageDetail(DateTime sd, DateTime ed, string username = null, bool remote = false, string format = "json")
+        {
+            Client mgr = null;
 
-            return new HttpResponseMessage(HttpStatusCode.OK)
+            if (!string.IsNullOrEmpty(username))
             {
-                Content = new StringContent(xdoc.ToString(), Encoding.UTF8, "text/xml")
-            };
+                mgr = DA.Current.Query<Client>().FirstOrDefault(x => x.UserName == username);
+
+                if (mgr == null)
+                    throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.NotFound, "Manager not found."));
+            }
+
+            if (!new[] { "xml", "json" }.Contains(format))
+            {
+                throw new ArgumentException("Format must be 'xml' or 'json'.", "format");
+            }
+            else
+            {
+                var items = ReportGenerator.GetManagerUsageDetailItems(sd, ed, mgr, remote);
+
+                if (format == "xml")
+                {
+                    var xdoc = ReportGenerator.GetManagerUsageDetailXml(items);
+
+                    return new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent(xdoc.ToString(), Encoding.UTF8, "text/xml")
+                    };
+                }
+                else
+                {
+                    var json = ReportGenerator.GetManagerUsageDetailJson(items);
+
+                    return new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent(json, Encoding.UTF8, "application/json")
+                    };
+                }
+            }
+
         }
 
         [Route("api/report/manager-usage-summary")]
@@ -40,10 +83,10 @@ namespace Reports.Controllers.Api
         {
             ClientItem mgr = ClientItemUtility.CreateClientItem(DA.Current.Query<ClientInfo>().FirstOrDefault(x => x.UserName == username));
 
-            if (mgr != null)
-                return ReportGenerator.CreateManagerUsageSummary(period, mgr, remote);
-            else
+            if (mgr == null)
                 throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.NotFound, "Manager not found."));
+
+            return ReportGenerator.CreateManagerUsageSummary(period, mgr, remote);
         }
 
         [Route("api/report/manager-usage-summary")]

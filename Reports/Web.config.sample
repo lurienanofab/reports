@@ -27,14 +27,16 @@
   </lnf>
 
   <connectionStrings>
-    <add name="cnSselData" connectionString="Server=*****;Database=*****;User Id=*****;Password=*****"/>
-    <add name="cnProwatch" connectionString="Server=*****;Database=*****;User ID=*****;Password=*****" />
+    <add name="cnSselData" connectionString="*****"/>
+    <add name="cnProwatch" connectionString="*****" />
   </connectionStrings>
 
   <appSettings>
+    <add key="ManagerUsageSummarySenderEmail" value="*****"/>
+    <add key="ManagerUsageSummarySenderName" value="*****"/>
+    <add key="ManagerUsageSummarySubject" value="*****"/>
     <add key="DebugEmail" value="*****" />
     <add key="SecretKey" value="*****" />
-    <add key="TemplateDirectory" value="*****" />
     <add key="MongoConnectionString" value="*****"/>
     <add key="webpages:Version" value="3.0.0.0"/>
     <add key="webpages:Enabled" value="false"/>

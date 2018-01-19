@@ -13,10 +13,15 @@ namespace Reports.Controllers.Api
         [Route("api/template")]
         public int Put([FromBody] TemplateModel model)
         {
-            var template = new Template();
-            template.TemplateName = model.TemplateName;
-            template.TemplateContent = model.TemplateContent;
+            var template = new Template()
+            {
+                TemplateName = model.TemplateName,
+                TemplateContent = model.TemplateContent,
+                Report = model.Report
+            };
+
             DA.Current.Insert(template);
+
             return template.TemplateID;
         }
 

@@ -34,7 +34,7 @@
     </style>
 }
 
-<div class="manager-usage-summary" data-client-id="@clientId" data-period="@period.ToString("yyyy-MM-dd")" data-api-url="@Url.Content("~/api/")" data-template-url="@Url.Content("~/Templates/managerUsageSummaryReport.hbs")">
+<div class="manager-usage-summary" data-client-id="@clientId" data-period="@period.ToString("yyyy-MM-dd")" data-api-url="@Url.Content("~/api/")" data-template-url="@Url.Content("~/template/manager-usage-summary/report")">
     @if (string.IsNullOrEmpty(returnTo))
     {
         <h3>
