@@ -66,7 +66,7 @@ namespace Reports.Controllers
                 case "all-tool-usage-summary":
                     action = "ToolUsageSummary";
                     controller = "Resource";
-                    routeValues = new { option = "all" };
+                    routeValues = new { resource = "all" };
                     break;
                 default:
                     Session.Remove("return-to");
