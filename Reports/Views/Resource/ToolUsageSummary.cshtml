@@ -1,0 +1,507 @@
+﻿@using Reports.Models;
+
+@{
+    ViewBag.Title = "Tool Usage Summary";
+
+    string returnTo = null;
+
+    if (Session["return-to"] != null)
+    {
+        returnTo = Session["return-to"].ToString();
+    }
+
+    string resource = ViewBag.Resource;
+
+    DateTime sd = ViewBag.StartDate;
+
+    int months = ViewBag.Months;
+
+    string command = ViewBag.Command;
+
+    IEnumerable<ToolUsageSummaryItem> items = ViewBag.Items;
+
+    int[] accountTypes = ViewBag.AccountTypes;
+
+    var y = 2006;
+    var yearList = Enumerable.Range(y, DateTime.Now.Year - y + 1).Select(x => new SelectListItem()
+    {
+        Text = x.ToString(),
+        Selected = x == sd.Year
+    });
+
+    var foy = new DateTime(sd.Year, 1, 1);
+    var monthList = Enumerable.Range(0, 12).Select(x => new SelectListItem()
+    {
+        Text = foy.AddMonths(x).ToString("MMMM"),
+        Value = foy.AddMonths(x).Month.ToString(),
+        Selected = foy.AddMonths(x).Month == sd.Month
+    });
+}
+
+@section styles{
+    <style>
+        .form-inline .form-group {
+            margin-left: 0;
+            margin-right: 0;
+        }
+
+        @@media(max-width:767px) {
+            .form-inline .form-group.months {
+                margin-left: 0;
+            }
+        }
+
+        @@media(min-width:768px) {
+            .form-inline .form-group.months {
+                margin-left: 0;
+            }
+        }
+
+        @@media(min-width:992px) {
+            .form-inline .form-group.months {
+                margin-left: 15px;
+            }
+        }
+
+        @@media(min-width:1200px) {
+            .form-inline .form-group.months {
+                margin-left: 15px;
+            }
+        }
+    </style>
+}
+
+@if (string.IsNullOrEmpty(returnTo))
+{
+    <h3>
+        @Html.ActionLink("Reports", "Index", "Home")
+        <span>/</span>
+        @Html.ActionLink("Resource", "Index", "Resource")
+        <span>/</span>
+        <span>Tool Usage Summary</span>
+    </h3>
+}
+else
+{
+    <h2 class="report-title">Tool Usage Summary</h2>
+    <div><strong><a href="@Url.Action("Return", "Home")">&larr; Return to Main Page</a></strong></div>
+}
+
+<hr />
+
+<div class="tool-usage-summary">
+    @if (resource != "all")
+    {
+        <div class="alert alert-danger" role="alert">
+            This page can only be used for the 'all' option. Please use <a href="/sselresreports/ResToolUsageSummary.aspx">/sselresreports/ResToolUsageSummary.aspx</a> for running the per-tool report, or click @Html.ActionLink("here", "ToolUsageSummary", new { resource = "all" }) to run the all-tool report.
+        </div>
+    }
+    else
+    {
+        <div class="form-horizontal">
+            <div class="form-group">
+                <label class="col-md-1 control-label">Period</label>
+                <div class="col-md-11">
+                    <div class="form-inline">
+                        <div class="form-group">
+                            @Html.DropDownList("y", yearList, new { @class = "form-control" })
+                        </div>
+                        <div class="form-group">
+                            @Html.DropDownList("m", monthList, new { @class = "form-control" })
+                        </div>
+                        <div class="form-group months">
+                            <label>Months</label>
+                            <input type="text" name="n" class="form-control" style="width: 50px;" value="@months" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-md-1 control-label">Tool</label>
+                <div class="col-md-3">
+                    @if (resource == "all")
+                    {
+                        <p class="form-control-static">All Tools</p>
+                    }
+                    else
+                    {
+                        <select class="form-control"></select>
+                    }
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-md-1 control-label">Account Type</label>
+                <div class="col-md-11">
+                    <label class="checkbox-inline">
+                        <input type="checkbox" name="a" value="1"> Regular
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" name="a" value="2"> IOF
+                    </label>
+                    <label class="checkbox-inline">
+                        <input type="checkbox" name="a" value="3"> Limited
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-11 col-md-offset-1">
+                    <button type="button" class="btn btn-default" name="command" value="view">View</button>
+                    <button type="button" class="btn btn-default" name="command" value="export">Export</button>
+                </div>
+            </div>
+        </div>
+
+        if (command == "view")
+        {
+            <hr />
+
+            if (items != null)
+            {
+                <div style="margin-bottom: 20px;">
+                    <div>
+                        <a href="#" class="column-selection-toggle">select columns</a>
+                    </div>
+                    <div class="column-selection" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" class="column-toggle" data-column="4" checked /> TotalUses
+                                </label>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" class="column-toggle" data-column="5" checked /> TotalSchedHours
+                                </label>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" class="column-toggle" data-column="6" checked /> TotalActHours
+                                </label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-2">
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" class="column-toggle" data-column="7" /> NormalHoursGross
+                                </label>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" class="column-toggle" data-column="8" /> NormalHoursForgiven
+                                </label>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" class="column-toggle" data-column="9" /> NormalHoursNet
+                                </label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-2">
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" class="column-toggle" data-column="10" /> NormalAmountGross
+                                </label>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" class="column-toggle" data-column="11" /> NormalAmountForgiven
+                                </label>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" class="column-toggle" data-column="12" /> NormalAmountNet
+                                </label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-2">
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" class="column-toggle" data-column="13" /> OverTimeHoursGross
+                                </label>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" class="column-toggle" data-column="14" /> OverTimeHoursForgiven
+                                </label>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" class="column-toggle" data-column="15" /> OverTimeHoursNet
+                                </label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-2">
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" class="column-toggle" data-column="16" /> OverTimeAmountGross
+                                </label>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" class="column-toggle" data-column="17" /> OverTimeAmountForgiven
+                                </label>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" class="column-toggle" data-column="18" /> OverTimeAmountNet
+                                </label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-2">
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" class="column-toggle" data-column="19" /> BookingFeeGross
+                                </label>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" class="column-toggle" data-column="20" /> BookingFeeForgiven
+                                </label>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" class="column-toggle" data-column="21" /> BookingFeeNet
+                                </label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-2">
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" class="column-toggle" data-column="22" checked /> BilledAmountGross
+                                </label>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" class="column-toggle" data-column="23" checked /> BilledAmountForgiven
+                                </label>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" class="column-toggle" data-column="24" checked /> BilledAmountNet
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="view" style="visibility: hidden;">
+                    <table class="table data-table">
+                        <thead>
+                            <tr>
+                                <th>ResourceID</th>
+                                <th>ResourceName</th>
+                                <th>ChargeTypeID</th>
+                                <th>ChargeTypeName</th>
+                                <th class="sum" style="text-align: right;">TotalUses</th>
+                                <th class="sum" style="text-align: right;">TotalSchedHours</th>
+                                <th class="sum" style="text-align: right;">TotalActHours</th>
+                                <th class="sum" style="text-align: right;">NormalHoursGross</th>
+                                <th class="sum" style="text-align: right;">NormalHoursForgiven</th>
+                                <th class="sum" style="text-align: right;">NormalHoursNet</th>
+                                <th class="sum" style="text-align: right;">NormalAmountGross</th>
+                                <th class="sum" style="text-align: right;">NormalAmountForgiven</th>
+                                <th class="sum" style="text-align: right;">NormalAmountNet</th>
+                                <th class="sum" style="text-align: right;">OverTimeHoursGross</th>
+                                <th class="sum" style="text-align: right;">OverTimeHoursForgiven</th>
+                                <th class="sum" style="text-align: right;">OverTimeHoursNet</th>
+                                <th class="sum" style="text-align: right;">OverTimeAmountGross</th>
+                                <th class="sum" style="text-align: right;">OverTimeAmountForgiven</th>
+                                <th class="sum" style="text-align: right;">OverTimeAmountNet</th>
+                                <th class="sum" style="text-align: right;">BookingFeeGross</th>
+                                <th class="sum" style="text-align: right;">BookingFeeForgiven</th>
+                                <th class="sum" style="text-align: right;">BookingFeeNet</th>
+                                <th class="sum" style="text-align: right;">BilledAmountGross</th>
+                                <th class="sum" style="text-align: right;">BilledAmountForgiven</th>
+                                <th class="sum" style="text-align: right;">BilledAmountNet</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in items)
+                            {
+                                <tr>
+                                    <td>@item.ResourceID</td>
+                                    <td>@item.ResourceName</td>
+                                    <td>@item.ChargeTypeID</td>
+                                    <td>@item.ChargeTypeName</td>
+                                    <td style="@Html.GetNumericStyle(item.TotalUses, "text-align: right;")">@item.TotalUses.ToString("0.00")</td>
+                                    <td style="@Html.GetNumericStyle(item.TotalSchedHours, "text-align: right;")">@item.TotalSchedHours.ToString("0.00")</td>
+                                    <td style="@Html.GetNumericStyle(item.TotalActHours, "text-align: right;")">@item.TotalActHours.ToString("0.00")</td>
+                                    <td style="@Html.GetNumericStyle(item.NormalHoursGross, "text-align: right;")">@item.NormalHoursGross.ToString("0.00")</td>
+                                    <td style="@Html.GetNumericStyle(item.NormalHoursForgiven, "text-align: right;")">@item.NormalHoursForgiven.ToString("0.00")</td>
+                                    <td style="@Html.GetNumericStyle(item.NormalHoursNet, "text-align: right;")">@item.NormalHoursNet.ToString("0.00")</td>
+                                    <td style="@Html.GetNumericStyle(item.NormalAmountGross, "text-align: right;")">@item.NormalAmountGross.ToString("C")</td>
+                                    <td style="@Html.GetNumericStyle(item.NormalAmountForgiven, "text-align: right;")">@item.NormalAmountForgiven.ToString("C")</td>
+                                    <td style="@Html.GetNumericStyle(item.NormalAmountNet, "text-align: right;")">@item.NormalAmountNet.ToString("C")</td>
+                                    <td style="@Html.GetNumericStyle(item.OverTimeHoursGross, "text-align: right;")">@item.OverTimeHoursGross.ToString("0.00")</td>
+                                    <td style="@Html.GetNumericStyle(item.OverTimeHoursForgiven, "text-align: right;")">@item.OverTimeHoursForgiven.ToString("0.00")</td>
+                                    <td style="@Html.GetNumericStyle(item.OverTimeHoursNet, "text-align: right;")">@item.OverTimeHoursNet.ToString("0.00")</td>
+                                    <td style="@Html.GetNumericStyle(item.OverTimeAmountGross, "text-align: right;")">@item.OverTimeAmountGross.ToString("C")</td>
+                                    <td style="@Html.GetNumericStyle(item.OverTimeAmountForgiven, "text-align: right;")">@item.OverTimeAmountForgiven.ToString("C")</td>
+                                    <td style="@Html.GetNumericStyle(item.OverTimeAmountNet, "text-align: right;")">@item.OverTimeAmountNet.ToString("C")</td>
+                                    <td style="@Html.GetNumericStyle(item.BookingFeeGross, "text-align: right;")">@item.BookingFeeGross.ToString("C")</td>
+                                    <td style="@Html.GetNumericStyle(item.BookingFeeForgiven, "text-align: right;")">@item.BookingFeeForgiven.ToString("C")</td>
+                                    <td style="@Html.GetNumericStyle(item.BookingFeeNet, "text-align: right;")">@item.BookingFeeNet.ToString("C")</td>
+                                    <td style="@Html.GetNumericStyle(item.BilledAmountGross, "text-align: right;")">@item.BilledAmountGross.ToString("C")</td>
+                                    <td style="@Html.GetNumericStyle(item.BilledAmountForgiven, "text-align: right;")">@item.BilledAmountForgiven.ToString("C")</td>
+                                    <td style="@Html.GetNumericStyle(item.BilledAmountNet, "text-align: right;")">@item.BilledAmountNet.ToString("C")</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr style="font-weight: bold;">
+                                <td colspan="4" style="text-align: right;">Totals (visible rows only):</td>
+                                <!-- Total -->
+                                <td style="text-align: right;" data-format="0,0.00"></td>
+                                <td style="text-align: right;" data-format="0,0.00"></td>
+                                <td style="text-align: right;" data-format="0,0.00"></td>
+                                <!-- NormalHours -->
+                                <td style="text-align: right;" data-format="0,0.00"></td>
+                                <td style="text-align: right;" data-format="0,0.00"></td>
+                                <td style="text-align: right;" data-format="0,0.00"></td>
+                                <!-- NormalAmount -->
+                                <td style="text-align: right;" data-format="($0,0.00)"></td>
+                                <td style="text-align: right;" data-format="($0,0.00)"></td>
+                                <td style="text-align: right;" data-format="($0,0.00)"></td>
+                                <!-- OverTimeHours -->
+                                <td style="text-align: right;" data-format="0,0.00"></td>
+                                <td style="text-align: right;" data-format="0,0.00"></td>
+                                <td style="text-align: right;" data-format="0,0.00"></td>
+                                <!-- OverTimeAmount -->
+                                <td style="text-align: right;" data-format="($0,0.00)"></td>
+                                <td style="text-align: right;" data-format="($0,0.00)"></td>
+                                <td style="text-align: right;" data-format="($0,0.00)"></td>
+                                <!-- BookingFee -->
+                                <td style="text-align: right;" data-format="($0,0.00)"></td>
+                                <td style="text-align: right;" data-format="($0,0.00)"></td>
+                                <td style="text-align: right;" data-format="($0,0.00)"></td>
+                                <!-- BilledAmount -->
+                                <td style="text-align: right;" data-format="($0,0.00)"></td>
+                                <td style="text-align: right;" data-format="($0,0.00)"></td>
+                                <td style="text-align: right;" data-format="($0,0.00)"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-muted">
+                    <em>No items were found.</em>
+                </div>
+            }
+        }
+    }
+</div>
+
+@section scripts{
+    <script>
+        var selectedAccountTypes = [];
+
+        @foreach (var i in accountTypes)
+        {
+            @:selectedAccountTypes.push(parseInt('@i'));
+        }
+
+        $("input[name='a']").each(function () {
+            var chk = $(this);
+            var val = parseInt(chk.val());
+            chk.prop("checked", $.inArray(val, selectedAccountTypes) > -1);
+        });
+
+        var baseurl = '@Url.Action("ToolUsageSummary", new { resource })/';
+
+        $("button[name='command']").on("click", function (e) {
+            var command = $(this).val();
+
+            var accountTypes = $("input[name='a']:checked");
+
+            var errs = 0;
+
+            if (accountTypes.length == 0) {
+                alert("You must selected at least one account type");
+                errs++;
+            }
+
+            var a = accountTypes.map(function () { return $(this).val() }).get().join("+")
+
+            var y = $("select[name='y']").val();
+            var m = $("select[name='m']").val();
+
+            var sd = moment(y + "-" + m + "-1");
+
+            if (!sd.isValid()) {
+                alert("Invalid start date.");
+                errs++;
+            }
+
+            var n = parseInt($("input[name='n']").val());
+
+            if (isNaN(n)) {
+                alert("Invalid months.")
+                errs++;
+            }
+
+            if (errs === 0) {
+                var redirectUrl = baseurl + "?y=" + y + "&m=" + m + "&n=" + n + "&a=" + a + "&command=" + command;
+                window.location = redirectUrl;
+            }
+        });
+
+        var table = $(".data-table").DataTable({
+            "stateSave": true,
+            "lengthMenu": [[25, 50, 100, -1], [25, 50, 100, "All"]],
+            "order": [[1, 'asc'], [2, 'asc']],
+            "columnDefs": [
+                { "visible": false, "targets": [4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]}
+            ],
+            "footerCallback": function (row, data, start, end, display) {
+                var api = this.api();
+
+                api.columns(".sum", { "page": "current" }).every(function () {
+                    var sum = 0;
+
+                    this.data().each(function (value, index) {
+                        sum += numeral(value);
+                    });
+
+                    var footer = $(this.footer());
+                    var f = footer.data("format");
+                    footer.html(numeral(sum).format(f));
+
+                    if (sum < 0) footer.css({ "color": "red" });
+                });
+            },
+            "initComplete": function (settings, json) {
+                var api = this.api();
+
+                $(".column-toggle").each(function () {
+                    var chk = $(this);
+                    var column = api.column(chk.data("column"));
+                    column.visible(chk.prop("checked"));
+                });
+
+                $(".view").css({ "visibility": "visible" });
+            }
+        });
+
+        $(".column-toggle").on("change", function (e) {
+            var chk = $(this);
+            var column = table.column(chk.data("column"));
+            column.visible(chk.prop("checked"));
+        });
+
+        $(".column-selection-toggle").on("click", function (e) {
+            e.preventDefault();
+
+            var columnSelection = $(".column-selection");
+
+            if (columnSelection.is(":visible")) {
+                $(this).html("select columns")
+                columnSelection.hide();
+            } else {
+                $(this).html("close")
+                columnSelection.show();
+            }
+        });
+    </script>
+}

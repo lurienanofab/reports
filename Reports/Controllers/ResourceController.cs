@@ -1,15 +1,20 @@
 ﻿using LNF;
 using LNF.Billing;
+using LNF.CommonTools;
+using LNF.Models.Data;
 using LNF.Models.Scheduler;
 using LNF.PhysicalAccess;
 using LNF.Repository;
-using LNF.Repository.Data;
 using LNF.Repository.Scheduler;
+using Newtonsoft.Json;
 using Reports.Models;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Globalization;
 using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 
@@ -96,6 +101,86 @@ namespace Reports.Controllers
             return Content(rss.ToString(), "application/rss+xml");
         }
 
+        [Route("resource/tool-usage-summary/{resource?}")]
+        public async Task<ActionResult> ToolUsageSummary(string resource = "", string command = null, int? m = null, int? y = null, int? n = null, string a = null)
+        {
+            ViewBag.Resource = resource;
+
+            int startYear;
+            int startMonth;
+            DateTime startDate;
+            DateTime endDate;
+            DateTime defaultStartDate = DateTime.Now.FirstOfMonth().AddMonths(-1);
+
+            if (y.HasValue)
+                startYear = y.Value;
+            else
+                startYear = defaultStartDate.Year;
+
+            if (m.HasValue)
+                startMonth = m.Value;
+            else
+                startMonth = defaultStartDate.Month;
+
+            startDate = new DateTime(startYear, startMonth, 1);
+
+            ViewBag.StartDate = startDate;
+
+            if (n.HasValue)
+            {
+                ViewBag.Months = n.Value;
+                endDate = startDate.AddMonths(n.Value);
+            }
+            else
+            {
+                ViewBag.Months = 1;
+                endDate = startDate.AddMonths(1);
+            }
+
+            int[] accountTypes;
+
+            if (!string.IsNullOrEmpty(a))
+                accountTypes = a.Split(' ').Select(x => Convert.ToInt32(x)).ToArray();
+            else
+                accountTypes = new int[] { 1 };
+
+            ViewBag.AccountTypes = accountTypes;
+
+            ViewBag.Command = command;
+
+            if (command == "view")
+            {
+                using (var hc = new HttpClient())
+                {
+                    hc.BaseAddress = new Uri(GetFeedBaseUrl());
+
+                    string feedUri = string.Format("data/feed/tool-usage-summary/json?opt={0}&sd={1:yyyy-MM-dd}&ed={2:yyyy-MM-dd}&rid={3}&at={4}",
+                        "Combined", startDate, endDate, null, string.Join(",", accountTypes));
+
+                    var msg = await hc.GetAsync(feedUri);
+
+                    msg.EnsureSuccessStatusCode();
+
+                    var json = await msg.Content.ReadAsStringAsync();
+                    
+                    var feed = JsonConvert.DeserializeObject<DataFeedModel<ToolUsageSummaryItem>>(json);
+
+                    var items = feed.Data["default"];
+
+                    ViewBag.Items = items;
+                }
+            }
+            else if (command == "export")
+            {
+                string feedRedirectUrl = GetFeedBaseUrl() + string.Format("data/feed/tool-usage-summary/csv?opt={0}&sd={1:yyyy-MM-dd}&ed={2:yyyy-MM-dd}&rid={3}&at={4}",
+                    "Combined", startDate, endDate, null, string.Join(",", accountTypes));
+
+                return Redirect(feedRedirectUrl);
+            }
+
+            return View();
+        }
+
         private RssFeed PopulateInLabRss(string roomName, string channelName = "", string userName = "")
         {
             RssFeed rss = new RssFeed();
@@ -162,6 +247,11 @@ namespace Reports.Controllers
             });
 
             return rss;
+        }
+
+        private string GetFeedBaseUrl()
+        {
+            return ConfigurationManager.AppSettings["FeedBaseUrl"];
         }
 
         private string GetRoomDisplayName(string key)

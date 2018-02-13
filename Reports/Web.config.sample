@@ -32,6 +32,7 @@
   </connectionStrings>
 
   <appSettings>
+      <add key="FeedBaseUrl" value="*****" />
     <add key="ManagerUsageSummarySenderEmail" value="*****"/>
     <add key="ManagerUsageSummarySenderName" value="*****"/>
     <add key="ManagerUsageSummarySubject" value="*****"/>

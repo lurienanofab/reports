@@ -63,6 +63,11 @@ namespace Reports.Controllers
                     action = "ManagerUsageSummary";
                     controller = "Individual";
                     break;
+                case "all-tool-usage-summary":
+                    action = "ToolUsageSummary";
+                    controller = "Resource";
+                    routeValues = new { option = "all" };
+                    break;
                 default:
                     Session.Remove("return-to");
                     return RedirectToAction("Index");

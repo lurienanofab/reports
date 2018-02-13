@@ -19,6 +19,8 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 
+    <link href="//ssel-apps.eecs.umich.edu/static/lib/datatables/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="//ssel-apps.eecs.umich.edu/static/styles/datatables-bootstrap.css" rel="stylesheet" />
     <link href="~/Content/Site.css" rel="stylesheet" />
 
     @RenderSection("styles", false)
@@ -30,17 +32,19 @@
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="//ssel-apps.eecs.umich.edu/static/lib/jquery/jquery.min.js"></script>
+
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="//ssel-apps.eecs.umich.edu/static/lib/bootstrap/js/bootstrap.min.js"></script>
-
     <script src="//ssel-apps.eecs.umich.edu/static/lib/bootstrap/plugins/bootstrap-datepicker/js/bootstrap-datepicker.min.js"></script>
     <script src="//ssel-apps.eecs.umich.edu/static/lib/bootstrap/plugins/bootstrap-timepicker/js/bootstrap-timepicker.js"></script>
 
-    <script src="//ssel-apps.eecs.umich.edu/static/lib/moment/moment.min.js"></script>
-    <script src="//ssel-apps.eecs.umich.edu/static/lib/numeral/numeral.min.js"></script>
-    <script src="//ssel-apps.eecs.umich.edu/static/lib/urijs/URI.min.js"></script>
+    <script src="//ssel-apps.eecs.umich.edu/static/lib/datatables/js/jquery.dataTables.min.js"></script>
+    <script src="//ssel-apps.eecs.umich.edu/static/lib/datatables/js/dataTables.bootstrap.min.js"></script>
 
-    <script src="~/Scripts/handlebars-v4.0.10.js"></script>
+    <script src="//ssel-apps.eecs.umich.edu/static/lib/numeral/numeral.min.js"></script>
+    <script src="//ssel-apps.eecs.umich.edu/static/lib/moment/moment.min.js"></script>
+    <script src="//ssel-apps.eecs.umich.edu/static/lib/urijs/URI.min.js"></script>
+    <script src="//ssel-apps.eecs.umich.edu/static/lib/handlebars/handlebars.js"></script>
 
     <script>
         Handlebars.registerHelper("format_date", function (date, format, options) {
