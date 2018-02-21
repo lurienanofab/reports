@@ -1,0 +1,370 @@
+﻿@using LNF.Models.Data;
+@using LNF.Repository.Data;
+@using LNF.Scheduler;
+
+@{
+    ViewBag.Title = "Reservation States";
+
+    string returnTo = null;
+
+    if (Session["return-to"] != null)
+    {
+        returnTo = Session["return-to"].ToString();
+    }
+
+    IEnumerable<ClientItem> activeClients = ViewBag.ActiveClients;
+    IEnumerable<ResourceItem> resources = ViewBag.Resources;
+
+    DateTime sd = ViewBag.StartDate;
+    DateTime ed = ViewBag.EndDate;
+    int? rid = ViewBag.ResourceID;
+    int? cid = ViewBag.ClientID;
+    int? reserver = ViewBag.Reserver;
+    bool inlab = ViewBag.InLab;
+    bool runReport = ViewBag.RunReport;
+
+    var resourceListItems = resources.Select(x => new SelectListItem()
+    {
+        Text = x.ResourceName,
+        Value = x.ResourceID.ToString(),
+        Selected = x.ResourceID == rid.GetValueOrDefault()
+    }).ToList();
+
+    var currentUserListItems = activeClients.Select(x => new SelectListItem()
+    {
+        Text = Client.GetDisplayName(x.LName, x.FName),
+        Value = x.ClientID.ToString(),
+        Selected = x.ClientID == cid.GetValueOrDefault()
+    }).ToList();
+
+    var reserverListItems = activeClients.Select(x => new SelectListItem()
+    {
+        Text = Client.GetDisplayName(x.LName, x.FName),
+        Value = x.ClientID.ToString(),
+        Selected = x.ClientID == reserver.GetValueOrDefault()
+    }).ToList();
+}
+
+@if (string.IsNullOrEmpty(returnTo))
+{
+    <h3>
+        @Html.ActionLink("Reports", "Index", "Home")
+        <span>/</span>
+        @Html.ActionLink("Resource", "Index", "Resource")
+        <span>/</span>
+        <span>Reservation States</span>
+    </h3>
+}
+else
+{
+    <h2 class="report-title">Reservation States</h2>
+    <div><strong><a href="@Url.Action("Return", "Home")">&larr; Return to Main Page</a></strong></div>
+}
+
+<hr />
+
+<div class="reservation-states">
+    <div class="form-horizontal">
+        <div class="form-group">
+            <label class="col-md-2 control-label">Start Date</label>
+            <div class="col-md-2">
+                <input type="text" name="sd" class="form-control start-date" value="@sd.ToString("M/d/yyyy h:mm:ss tt")" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-md-2 control-label">End Date</label>
+            <div class="col-md-2">
+                <input type="text" name="ed" class="form-control end-date" value="@ed.ToString("M/d/yyyy h:mm:ss tt")" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-md-2 control-label">ResourceID</label>
+            <div class="col-md-3">
+                @Html.DropDownList("rid", resourceListItems, "[Any]", new { @class = "form-control resource-id" })
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-md-2 control-label">Current User ClientID</label>
+            <div class="col-md-3">
+                @Html.DropDownList("cid", currentUserListItems, "[Reserver]", new { @class = "form-control client-id" })
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-md-2 control-label">Reserved By ClientID</label>
+            <div class="col-md-3">
+                @Html.DropDownList("reserver", reserverListItems, "[Any]", new { @class = "form-control reserver" })
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <label class="checkbox-inline">
+                    <input type="checkbox" name="inlab" class="inlab" checked="@inlab" /> In lab
+                </label>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <button type="button" class="btn btn-primary run-report">Run Report</button>
+            </div>
+        </div>
+    </div>
+
+    <hr />
+
+    <img src="//ssel-apps.eecs.umich.edu/static/images/ajax-loader-5.gif" class="loader" style="display: none;" />
+
+    <div class="alert alert-danger error-message" role="alert" style="display: none;">
+        <span class="text"></span>
+    </div>
+
+    <div class="list-container" style="display: none;">
+        <div class="row">
+            <div class="col-md-2">
+                <div class="list-group legend"></div>
+            </div>
+            <div class="col-md-6">
+                <div class="row" style="margin-bottom: 20px;">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control search" placeholder="Search..." />
+                    </div>
+                    <div class="col-md-8">
+                        <div class="pull-right text-muted" style="margin-top: 7px;">
+                            <em class="search-info"></em>
+                        </div>
+                    </div>
+                </div>
+                <ul class="list-group reservation-states-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script id="list-template" type="text/x-handlebars-template">
+        {{#each this}}
+        <li class="list-group-item reservation" style="background-color: {{color}}" data-reservation-id="{{reservationId}}">
+            <div class="row">
+                <div class="col-md-7">
+                    <div><strong>State:</strong> {{state}}</div>
+                    <div><strong>ReservationID:</strong> {{reservationId}}</div>
+                    <div><strong>Reserver:</strong> {{reserver.displayName}} [{{reserver.clientId}}]</div>
+                    <div><strong>Resource:</strong> {{resourceName}} [{{resourceId}}]</div>
+                    <div><strong>Scheduled:</strong> {{scheduled}}</div>
+                    <div><strong>Actual:</strong> {{actual}}</div>
+                </div>
+                <div class="col-md-5">
+                    <div><strong>Current User:</strong> {{currentUser.displayName}} [{{currentUser.clientId}}]</div>
+                    <div><strong>Is Authorized: </strong> {{isAuthorized}}</div>
+                    <div><strong>Is Invited: </strong> {{isInvited}}</div>
+                    <div><strong>Is Reserver: </strong> {{isReserver}}</div>
+                    <div><strong>Is Tool Engineer: </strong> {{isEngineer}}</div>
+                </div>
+            </div>
+        </li>
+        {{/each}}
+    </script>
+</div>
+
+@section scripts{
+    <script>
+        var template = Handlebars.compile($("#list-template").html());
+        var baseurl = '@Url.Action("ReservationStates")';
+        var runReport = '@(runReport ? "true" : "false")' === "true";
+
+        var states = [
+            { "name": "Undefined", "color": "#ffffe0" },        // LightYellow - also used after minCancel and before start
+            { "name": "Editable", "color": "#add8e6" },         // LightBlue
+            { "name": "StartOrDelete", "color": "#90ee90" },    // LightGreen
+            { "name": "StartOnly", "color": "#90ee90" },        // LightGreen
+            { "name": "Endable", "color": "#ff4500" },          // OrangeRed
+            { "name": "PastSelf", "color": "#b0c4de" },         // LightSteelBlue
+            { "name": "Other", "color": "#dda0dd" },            // Plum
+            { "name": "Invited", "color": "#f08080" },          // LightCoral - behaves like other
+            { "name": "PastOther", "color": "#9370db" },        // MediumPurple
+            { "name": "Repair", "color": "#d3d3d3" },           // LightGray
+            { "name": "NotInLab", "color": "#ffffff" },         // xxxxx
+            { "name": "UnAuthToStart", "color": "#ffffff" },    // xxxxx
+            { "name": "ActiveNotEndable", "color": "#ffffff" }, // requested by Ed, so everyone can know the reservation is current active
+            { "name": "Meeting", "color": "#ffffff" }
+        ];
+
+        var getDateRange = function (sd, ed) {
+            var f = "M/D/YYYY h:mm:ss A";
+
+            var sm = moment(sd);
+            var em = moment(ed);
+
+            if (!sm.isValid() && !em.isValid())
+                return "";
+
+            var result = $.map([sm, em], function (m, i) {
+                return m.isValid() ? m.format(f) : "?";
+            }).join(" - ");
+
+            return result;
+        };
+
+        var getClientItem = function (client) {
+            return {
+                "clientId": client.ClientID,
+                "displayName": client.DisplayName
+            };
+        }
+
+        $(".reservation-states").each(function () {
+            var $this = $(this);
+
+            const DATE_FORMAT = "YYYY-MM-DD[T]HH:mm:ss";
+
+            var getFormatedStartDate = function () {
+                var d = new Date($(".start-date", $this).val());
+                var m = moment(d);
+                return m.format(DATE_FORMAT);
+            }
+
+            var getFormatedEndDate = function () {
+                var d = new Date($(".end-date", $this).val());
+                var m = moment(d);
+                return m.format(DATE_FORMAT);
+            }
+
+            var refresh = function () {
+                var def = $.Deferred();
+
+                $(".loader", $this).show();
+                $(".list-container", $this).hide();
+                $(".error-message").hide();
+                $(".error-message .text").html("");
+
+                var data = {
+                    "sd": getFormatedStartDate(),
+                    "ed": getFormatedEndDate(),
+                    "cid": $(".client-id", $this).val(),
+                    "reserver": $(".reserver", $this).val(),
+                    "rid": $(".resource-id", $this).val(),
+                    "inlab": $(".inlab", $this).prop("checked"),
+                };
+
+                $.ajax({
+                    "url": '/webapi/scheduler/reservation/states',
+                    "method": "GET",
+                    "data": data
+                }).done(function (data) {
+                    var model = $.map(data, function (item, index) {
+                        var result = {
+                            reservationId: item.ReservationID,
+                            state: states[item.State].name,
+                            scheduled: getDateRange(item.BeginDateTime, item.EndDateTime),
+                            actual: getDateRange(item.ActualBeginDateTime, item.ActualEndDateTime),
+                            reserver: getClientItem(item.Reserver),
+                            resourceId: item.ResourceID,
+                            resourceName: item.ResourceName,
+                            currentUser: getClientItem(item.CurrentUser),
+                            isAuthorized: item.IsAuthorized ? "Yes" : "No",
+                            isInvited: item.IsInvited ? "Yes" : "No",
+                            isReserver: item.IsReserver ? "Yes" : "No",
+                            isEngineer: item.IsToolEngineer ? "Yes" : "No",
+                            color: states[item.State].color,
+                        };
+
+                        return result;
+                    });
+
+                    $(".reservation-states-list", $this).html(template(model));
+                    $(".list-container", $this).show();
+
+                    def.resolve(model);
+                }).fail(function (jqXHR) {
+                    let errmsg = jqXHR.responseJSON && jqXHR.responseJSON.ExceptionMessage ?
+                        jqXHR.responseJSON.ExceptionMessage
+                        : "An error has occurred.";
+
+                    $(".error-message").show();
+                    $(".error-message .text").html(errmsg);
+
+                    def.reject();
+                }).always(function () {
+                    $(".loader", $this).hide();
+                });
+
+                return def.promise();
+            };
+
+            $this.on("click", ".run-report", function (e) {
+                var sd = getFormatedStartDate();
+                var ed = moment(new Date($(".end-date", $this).val())).format("");
+                var rid = $(".resource-id", $this).val();
+                var cid = $(".client-id", $this).val();
+                var reserver = $(".reserver", $this).val();
+                var inlab = $(".inlab", $this).prop("checked");
+
+                var redirect = baseurl + "?sd=" + sd + "&ed=" + ed + "&rid=" + rid + "&cid=" + cid + "&reserver=" + reserver + "&inlab=" + inlab + "&run=report";
+                window.location = redirect;
+            });
+
+            if (runReport) {
+                refresh().done(function (model) {
+                    var fuse = new Fuse(model, {
+                        threshold: 0,
+                        id: "reservationId",
+                        keys: [
+                            "reservationId",
+                            "state",
+                            "scheduled",
+                            "actual",
+                            "reserver.clientId",
+                            "reserver.displayName",
+                            "resourceId",
+                            "resourceName",
+                            "currentUser.clientId",
+                            "currentUser.displayName"]
+                    });
+
+                    var searchReservations = function (value) {
+                        var displaying = 0;
+
+                        if (!value) {
+                            $(".reservation", $this).show();
+                            displaying = fuse.list.length;
+                        } else {
+                            $(".reservation", $this).hide();
+
+                            var searchResults = fuse.search(value);
+
+                            $.each(searchResults, function (i, v) {
+                                $(".reservation[data-reservation-id='" + v + "']", $this).show();
+                            });
+
+                            displaying = searchResults.length;
+                        }
+
+                        $(".search-info", $this).html("Displaying " + displaying + " out of " + fuse.list.length + " reservations.");
+                    };
+
+                    var getStateCount = function (state) {
+                        var reservationsWithState = model.filter(function (value, index) {
+                            return value.state === state;
+                        });
+                        return reservationsWithState.length;
+                    };
+
+                    $(".legend", $this).html($.map(states, function (value, index) {
+                        return $("<a/>", { "href": "#", "class": "list-group-item legend-item", "data-state": value.name })
+                            .css({ "background-color": value.color })
+                            .html(value.name)
+                            .append($("<span/>", { "class": "badge" }).html(getStateCount(value.name)));
+                    }));
+
+                    $this.on("keyup", ".search", function (e) {
+                        searchReservations($(this).val());
+                    }).on("click", ".legend-item", function (e) {
+                        e.preventDefault();
+                        var state = $(this).data("state");
+                        $(".search", $this).val(state);
+                        searchReservations(state);
+                    });
+
+                    searchReservations("");
+                });
+            }
+        });
+    </script>
+}

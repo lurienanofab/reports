@@ -1,10 +1,13 @@
 ﻿using LNF.Billing;
+using LNF.CommonTools;
 using LNF.Models.Reporting;
 using LNF.Models.Reporting.Individual;
+using LNF.Models.Scheduler;
 using LNF.Reporting;
 using LNF.Repository;
 using LNF.Repository.Data;
 using LNF.Repository.Scheduler;
+using LNF.Scheduler;
 using Reports.Models;
 using System;
 using System.Collections.Generic;
@@ -13,7 +16,6 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Web.Http;
-using LNF.CommonTools;
 
 namespace Reports.Controllers.Api
 {
@@ -126,7 +128,7 @@ namespace Reports.Controllers.Api
         [Route("api/report/user-usage-summary")]
         public UserUsageSummary GetUserUsageSummary(DateTime period, string username)
         {
-            ClientItem user = ClientItemUtility.CreateClientItem(DA.Current.Query<ClientInfo>().FirstOrDefault(x => x.UserName == username));
+            var user = ClientItemUtility.CreateClientItem(DA.Current.Query<ClientInfo>().FirstOrDefault(x => x.UserName == username));
 
             if (user != null)
                 return ReportGenerator.CreateUserUsageSummary(period, user);
@@ -137,7 +139,7 @@ namespace Reports.Controllers.Api
         [Route("api/report/user-usage-summary")]
         public UserUsageSummary GetUserUsageSummary(DateTime period, int clientId)
         {
-            ClientItem user = ClientItemUtility.CreateClientItem(DA.Current.Query<ClientInfo>().FirstOrDefault(x => x.ClientID == clientId));
+            var user = ClientItemUtility.CreateClientItem(DA.Current.Query<ClientInfo>().FirstOrDefault(x => x.ClientID == clientId));
 
             if (user != null)
                 return ReportGenerator.CreateUserUsageSummary(period, user);
@@ -172,12 +174,5 @@ namespace Reports.Controllers.Api
             var result = durations[args.ResourceID].Select(x => range.GetDurationInfo(x.Reservation)).ToArray();
             return result;
         }
-    }
-
-    public class DurationInfoArgs
-    {
-        public int ResourceID { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
     }
 }

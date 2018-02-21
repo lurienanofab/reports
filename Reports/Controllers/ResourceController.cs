@@ -74,6 +74,40 @@ namespace Reports.Controllers
             return View(model);
         }
 
+        [Route("resource/reservation-states")]
+        public ActionResult ReservationStates(DateTime? sd = null, DateTime? ed = null, int? rid = null, int? cid = null, int? reserver = null, bool inlab = true, string run = null)
+        {
+            var startDate = sd.GetValueOrDefault(DateTime.Now.Date.AddDays(-2));
+            var endDate = ed.GetValueOrDefault(startDate.AddMonths(1));
+
+            ViewBag.StartDate = startDate;
+            ViewBag.EndDate = endDate;
+            ViewBag.ResourceID = rid;
+            ViewBag.ClientID = cid;
+            ViewBag.Reserver = reserver;
+            ViewBag.InLab = inlab;
+            ViewBag.RunReport = run == "report";
+
+            ViewBag.ActiveClients = LNF.Data.ClientUtility.GetActiveClients(startDate, endDate, ClientPrivilege.LabUser | ClientPrivilege.Staff)
+                .OrderBy(x => x.LName)
+                .ThenBy(x => x.FName)
+                .Select(x => new ClientItem()
+                {
+                    ClientID = x.ClientID,
+                    Privs = x.Privs,
+                    LName = x.LName,
+                    FName = x.FName
+                }).ToList();
+
+            ViewBag.Resources = DA.Current.Query<Resource>().Where(x => x.IsActive).OrderBy(x => x.ResourceName).Select(x => new LNF.Scheduler.ResourceItem()
+            {
+                ResourceID = x.ResourceID,
+                ResourceName = x.ResourceName
+            }).ToList();
+
+            return View();
+        }
+
         /// <summary>
         /// This method exists for backwards compatability. The display in the lab entrance uses this route.
         /// </summary>
@@ -162,7 +196,7 @@ namespace Reports.Controllers
                     msg.EnsureSuccessStatusCode();
 
                     var json = await msg.Content.ReadAsStringAsync();
-                    
+
                     var feed = JsonConvert.DeserializeObject<DataFeedModel<ToolUsageSummaryItem>>(json);
 
                     var items = feed.Data["default"];

@@ -32,7 +32,7 @@ namespace Reports.Controllers
             { 
                 var c = ClientItemUtility.CreateClientItem(clientId);
                 ViewBag.ClientID = c.ClientID;
-                ViewBag.DisplayName = ClientModel.GetDisplayName(c.LName, c.FName);
+                ViewBag.DisplayName = ClientItem.GetDisplayName(c.LName, c.FName);
             }
 
             if (period == null)
@@ -60,7 +60,7 @@ namespace Reports.Controllers
             {
                 var c = ClientItemUtility.CreateClientItem(clientId);
                 ViewBag.ClientID = c.ClientID;
-                ViewBag.DisplayName = ClientModel.GetDisplayName(c.LName, c.FName);
+                ViewBag.DisplayName = ClientItem.GetDisplayName(c.LName, c.FName);
             }
 
             if (period == null)
