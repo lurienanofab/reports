@@ -1,8 +1,8 @@
 ﻿using LNF;
 using LNF.Billing;
+using LNF.Repository;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Linq;
 
 namespace Reports.Tests
 {
@@ -12,7 +12,7 @@ namespace Reports.Tests
         [TestMethod]
         public void CanCreateReservationDateRange()
         {
-            using (Providers.DataAccess.StartUnitOfWork())
+            using (ServiceProvider.Current.Resolver.GetInstance<IUnitOfWork>())
             {
                 //var a = RunTest(DateTime.Parse("2017-07-03 10:30"), DateTime.Parse("2017-07-04 14:00"), 14021);
                 //var b = RunTest(DateTime.Parse("2017-07-03 10:00"), DateTime.Parse("2017-07-04 12:00"), 14021);

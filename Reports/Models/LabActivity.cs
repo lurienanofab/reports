@@ -36,7 +36,7 @@ namespace Reports.Models
 
             result.StatusDateTime = DateTime.Now;
 
-            var inArea = Providers.PhysicalAccess.CurrentlyInArea();
+            var inArea = ServiceProvider.Current.PhysicalAccess.CurrentlyInArea();
             result.RoomOccupancies = inArea.GroupBy(x => x.CurrentAreaName).Select(x => new RoomOccupancy { RoomName = x.Key, Occupancy = x.Count() }).ToList();
 
             var activeReservations = DA.Current.Query<Reservation>().Where(x => x.ActualBeginDateTime.HasValue && !x.ActualEndDateTime.HasValue && x.IsStarted && x.IsActive);

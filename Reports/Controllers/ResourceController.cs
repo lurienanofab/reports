@@ -1,6 +1,7 @@
 ﻿using LNF;
 using LNF.Billing;
 using LNF.CommonTools;
+using LNF.Data;
 using LNF.Models.Data;
 using LNF.Models.Scheduler;
 using LNF.PhysicalAccess;
@@ -88,7 +89,7 @@ namespace Reports.Controllers
             ViewBag.InLab = inlab;
             ViewBag.RunReport = run == "report";
 
-            ViewBag.ActiveClients = LNF.Data.ClientUtility.GetActiveClients(startDate, endDate, ClientPrivilege.LabUser | ClientPrivilege.Staff)
+            ViewBag.ActiveClients = DA.Use<IClientManager>().GetActiveClients(startDate, endDate, ClientPrivilege.LabUser | ClientPrivilege.Staff)
                 .OrderBy(x => x.LName)
                 .ThenBy(x => x.FName)
                 .Select(x => new ClientItem()
@@ -319,7 +320,7 @@ namespace Reports.Controllers
 
         private IList<InLabClient> GetCurrentUsersInRoom(string areaName)
         {
-            IList<Badge> inlab = Providers.PhysicalAccess.CurrentlyInArea().ToList();
+            IList<Badge> inlab = ServiceProvider.Current.PhysicalAccess.CurrentlyInArea().ToList();
             List<InLabClient> result = inlab
                 .Where(x => x.CurrentAreaName == areaName)
                 .Select(x => new InLabClient(x))

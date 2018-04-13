@@ -192,10 +192,9 @@ namespace Reports.Models
                     IsHtml = true
                 };
 
-                var sendResult = Providers.Email.SendMessage(sendMessageArgs);
+                ServiceProvider.Current.Email.SendMessage(sendMessageArgs);
 
-                if (sendResult.Success)
-                    count += 1;
+                count += 1;
             }
 
             return count;
@@ -207,7 +206,7 @@ namespace Reports.Models
             var client = args.Manager;
             var width = args.Model.ShowSubsidyColumn ? 1000 : 800;
 
-            var unsubscribeUrl = Providers.Context.Current.GetAbsolutePath(string.Format("~/unsubscribe/{0}", Encryption.SHA256(args.Preference.ClientEmailPreferenceID.ToString())));
+            var unsubscribeUrl = ServiceProvider.Current.Context.GetAbsolutePath(string.Format("~/unsubscribe/{0}", Encryption.SHA256(args.Preference.ClientEmailPreferenceID.ToString())));
 
             string result = TemplateManager.ManagerUsageSummaryEmailTemplate(new { client, model, width, unsubscribeUrl });
 

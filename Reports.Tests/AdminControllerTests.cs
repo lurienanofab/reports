@@ -1,4 +1,5 @@
 ﻿using LNF;
+using LNF.Repository;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reports.Models;
 using System;
@@ -12,7 +13,7 @@ namespace Reports.Tests
         [TestMethod]
         public void SendManagerUsageSummaryEmailsTest()
         {
-            using (Providers.DataAccess.StartUnitOfWork())
+            using (ServiceProvider.Current.Resolver.GetInstance<IUnitOfWork>())
             {
                 var group = "financial-internal";
                 var period = DateTime.Parse("2017-09-01");
@@ -23,7 +24,6 @@ namespace Reports.Tests
                 var emails = EmailManager.CreateManagerUsageSummaryEmails(currentUserClientId, period, managers, remote).ToList();
 
                 var e = emails.First(x => x.RecipientEmail == "clemk@umich.edu");
-
             }
         }
     }

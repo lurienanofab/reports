@@ -1,6 +1,7 @@
 ﻿using LNF;
 using LNF.Models.Reporting;
 using LNF.Reporting;
+using LNF.Repository;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reports.Models;
 using System;
@@ -13,7 +14,7 @@ namespace Reports.Tests
         [TestMethod]
         public void CanSendManagerUsageSummaryEmail()
         {
-            using (Providers.DataAccess.StartUnitOfWork())
+            using (ServiceProvider.Current.Resolver.GetInstance<IUnitOfWork>())
             {
                 var period = DateTime.Parse("2017-04-01");
                 var mgr1 = ClientItemUtility.CreateClientItem(2823);

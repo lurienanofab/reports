@@ -83,7 +83,7 @@ namespace Reports.Controllers.Api
         [Route("api/report/manager-usage-summary")]
         public ManagerUsageSummary GetManagerUsageSummary(DateTime period, string username, bool remote = false)
         {
-            ClientItem mgr = ClientItemUtility.CreateClientItem(DA.Current.Query<ClientInfo>().FirstOrDefault(x => x.UserName == username));
+            ClientItem mgr = ClientItemUtility.CreateClientItems(DA.Current.Query<ClientInfo>().Where(x => x.UserName == username)).FirstOrDefault();
 
             if (mgr == null)
                 throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.NotFound, "Manager not found."));
@@ -94,7 +94,7 @@ namespace Reports.Controllers.Api
         [Route("api/report/manager-usage-summary")]
         public ManagerUsageSummary GetManagerUsageSummary(DateTime period, int clientId, bool remote = false)
         {
-            ClientItem mgr = ClientItemUtility.CreateClientItem(DA.Current.Query<ClientInfo>().FirstOrDefault(x => x.ClientID == clientId));
+            ClientItem mgr = ClientItemUtility.CreateClientItems(DA.Current.Query<ClientInfo>().Where(x => x.ClientID == clientId)).FirstOrDefault();
 
             if (mgr != null)
                 return ReportGenerator.CreateManagerUsageSummary(period, mgr, remote);
@@ -109,13 +109,12 @@ namespace Reports.Controllers.Api
             {
                 var comparer = new ClientItemEqualityComparer();
 
-                ClientItem mgr = DA.Current.Query<ClientAccountInfo>()
-                    .Where(x => x.ClientID == model.ClientID && x.EmailRank == 1)
-                    .Select(ClientItemUtility.CreateClientItem)
+                ClientItem mgr = ClientItemUtility.CreateClientItems(DA.Current.Query<ClientAccountInfo>()
+                        .Where(x => x.ClientID == model.ClientID && x.EmailRank == 1))
                     .Distinct(comparer)
                     .FirstOrDefault();
 
-                int count = EmailManager.SendManagerSummaryReport(model.CurrentUserClientID, model.Period, new[] { mgr }, model.Message, model.CCAddress, model.Debug, model.IncludeRemote);
+                int count = Models.EmailManager.SendManagerSummaryReport(model.CurrentUserClientID, model.Period, new[] { mgr }, model.Message, model.CCAddress, model.Debug, model.IncludeRemote);
 
                 return new EmailReportResult() { Count = count, ErrorMessage = null };
             }
@@ -128,7 +127,7 @@ namespace Reports.Controllers.Api
         [Route("api/report/user-usage-summary")]
         public UserUsageSummary GetUserUsageSummary(DateTime period, string username)
         {
-            var user = ClientItemUtility.CreateClientItem(DA.Current.Query<ClientInfo>().FirstOrDefault(x => x.UserName == username));
+            var user = ClientItemUtility.CreateClientItems(DA.Current.Query<ClientInfo>().Where(x => x.UserName == username)).FirstOrDefault();
 
             if (user != null)
                 return ReportGenerator.CreateUserUsageSummary(period, user);
@@ -139,7 +138,7 @@ namespace Reports.Controllers.Api
         [Route("api/report/user-usage-summary")]
         public UserUsageSummary GetUserUsageSummary(DateTime period, int clientId)
         {
-            var user = ClientItemUtility.CreateClientItem(DA.Current.Query<ClientInfo>().FirstOrDefault(x => x.ClientID == clientId));
+            var user = ClientItemUtility.CreateClientItems(DA.Current.Query<ClientInfo>().Where(x => x.ClientID == clientId)).FirstOrDefault();
 
             if (user != null)
                 return ReportGenerator.CreateUserUsageSummary(period, user);
