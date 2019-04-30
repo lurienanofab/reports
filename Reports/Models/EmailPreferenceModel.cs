@@ -7,7 +7,7 @@ namespace Reports.Models
     {
         public int ClientID { get; set; }
         public string DisplayName { get; set; }
-        public IEnumerable<ClientItem> AvailableClients { get; set; }
+        public IEnumerable<ReportingClientItem> AvailableClients { get; set; }
         public IEnumerable<EmailPreferenceItem> AvailableItems { get; set; }
         public IEnumerable<int> SelectedItems { get; set; }
         public bool CanSelectUser { get; set; }
@@ -15,7 +15,7 @@ namespace Reports.Models
         
         public EmailPreferenceModel()
         {
-            AvailableClients = new List<ClientItem>();
+            AvailableClients = new List<ReportingClientItem>();
             AvailableItems = new List<EmailPreferenceItem>();
             SelectedItems = new List<int>();
         }

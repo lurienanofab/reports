@@ -173,9 +173,9 @@
 
                             $.ajax({
                                 "url": url
-                            }).done(function (data, textStatus, jqXHR) {
+                            }).done(function (data) {
                                 displayReport(data);
-                            }).fail(function (jqXHR, textStatus, errorThrown) {
+                            }).fail(function (jqXHR) {
                                 showAlertWithXhr(jqXHR, url);
                             }).always(function () {
                                 $(".run-report", $this).prop("disabled", false);

@@ -1,12 +1,10 @@
-﻿using System;
+﻿using LNF.Models.Data;
+using LNF.Web;
+using Reports.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 using System.Web.Mvc;
-using LNF.Cache;
-using LNF.Models.Data;
-using Reports.Models;
-using LNF.CommonTools;
 
 namespace Reports.Controllers
 {
@@ -15,7 +13,7 @@ namespace Reports.Controllers
         [HttpGet, Route("admin/email")]
         public ActionResult Email()
         {
-            if (!CacheManager.Current.CurrentUser.HasPriv(ClientPrivilege.Administrator | ClientPrivilege.Developer))
+            if (!HttpContext.CurrentUser().HasPriv(ClientPrivilege.Administrator | ClientPrivilege.Developer))
                 return RedirectToAction("Index", "Home");
 
             return View();
@@ -24,7 +22,7 @@ namespace Reports.Controllers
         [Route("admin/email/ajax/manager-usage-summary/recipients")]
         public ActionResult GetManagerUsageSummaryEmailRecipients(string group, DateTime period, bool remote = false)
         {
-            var currentUserClientId = CacheManager.Current.CurrentUser.ClientID;
+            var currentUserClientId = HttpContext.CurrentUser().ClientID;
             var emails = GetManagerUsageSummaryEmails(group, period, currentUserClientId, remote);
             var result = emails.Select(x => new { Name = x.RecipientName, Email = x.RecipientEmail });
             return Json(result, JsonRequestBehavior.AllowGet);
@@ -33,7 +31,7 @@ namespace Reports.Controllers
         [Route("admin/email/ajax/manager-usage-summary/send")]
         public ActionResult SendManagerUsageSummaryEmails(string group, DateTime period, string message, string ccaddr, bool debug, bool remote = false)
         {
-            var currentUserClientId = CacheManager.Current.CurrentUser.ClientID;
+            var currentUserClientId = HttpContext.CurrentUser().ClientID;
             var emails = GetManagerUsageSummaryEmails(group, period, currentUserClientId, remote);
             var count = EmailManager.SendManagerSummaryReport(currentUserClientId, emails, message, ccaddr, debug);
             var result = new { message = string.Format("Manager Usage Summary emails sent: {0}", count) };

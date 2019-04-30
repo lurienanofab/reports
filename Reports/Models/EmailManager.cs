@@ -1,6 +1,6 @@
 ﻿using LNF;
 using LNF.CommonTools;
-using LNF.Email;
+using LNF.Models.Mail;
 using LNF.Models.Reporting;
 using LNF.Models.Reporting.Individual;
 using LNF.Reporting;
@@ -15,11 +15,11 @@ namespace Reports.Models
 {
     public static class EmailManager
     {
-        public static IEnumerable<ClientItem> GetManagers(int currentUserClientId, string group, DateTime period, bool includeRemote)
+        public static IEnumerable<ReportingClientItem> GetManagers(int currentUserClientId, string group, DateTime period, bool includeRemote)
         {
             var activeManagers = ClientItemUtility.SelectActiveManagers(period);
 
-            IEnumerable<ClientItem> filtered;
+            IEnumerable<ReportingClientItem> filtered;
 
             switch (group)
             {
@@ -66,7 +66,7 @@ namespace Reports.Models
             return filtered;
         }
 
-        public static IEnumerable<EmailMessage> CreateManagerUsageSummaryEmails(int currentUserClientId, DateTime period, IEnumerable<ClientItem> managers, bool includeRemote)
+        public static IEnumerable<EmailMessage> CreateManagerUsageSummaryEmails(int currentUserClientId, DateTime period, IEnumerable<ReportingClientItem> managers, bool includeRemote)
         {
             int managerSummaryReportEmailPreferenceId = 1;
 
@@ -154,7 +154,7 @@ namespace Reports.Models
             return SendManagerSummaryReport(currentUserClientId, period, activeManagers, message, ccaddr, debug, includeRemote);
         }
 
-        public static int SendManagerSummaryReport(int currentUserClientId, DateTime period, IEnumerable<ClientItem> managers, string message, string ccaddr, bool debug, bool includeRemote)
+        public static int SendManagerSummaryReport(int currentUserClientId, DateTime period, IEnumerable<ReportingClientItem> managers, string message, string ccaddr, bool debug, bool includeRemote)
         {
             var emails = CreateManagerUsageSummaryEmails(currentUserClientId, period, managers, includeRemote);
             return SendManagerSummaryReport(currentUserClientId, emails, message, ccaddr, debug);
@@ -192,7 +192,7 @@ namespace Reports.Models
                     IsHtml = true
                 };
 
-                ServiceProvider.Current.Email.SendMessage(sendMessageArgs);
+                ServiceProvider.Current.Mail.SendMessage(sendMessageArgs);
 
                 count += 1;
             }
@@ -316,17 +316,20 @@ namespace Reports.Models
 
     public struct ManagerSummaryReportEmailArgs
     {
-        public static ManagerSummaryReportEmailArgs Create(ClientEmailPreference pref, ManagerUsageSummary model, ClientItem manager)
+        public static ManagerSummaryReportEmailArgs Create(ClientEmailPreference pref, ManagerUsageSummary model, ReportingClientItem manager)
         {
-            var result = new ManagerSummaryReportEmailArgs();
-            result.Preference = pref;
-            result.Model = model;
-            result.Manager = manager;
+            var result = new ManagerSummaryReportEmailArgs
+            {
+                Preference = pref,
+                Model = model,
+                Manager = manager
+            };
+
             return result;
         }
 
         public ClientEmailPreference Preference { get; private set; }
         public ManagerUsageSummary Model { get; private set; }
-        public ClientItem Manager { get; private set; }
+        public ReportingClientItem Manager { get; private set; }
     }
 }

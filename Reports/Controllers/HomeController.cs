@@ -1,13 +1,13 @@
-﻿using LNF.Cache;
-using LNF.CommonTools;
+﻿using LNF.CommonTools;
 using LNF.Models.Data;
 using LNF.Repository;
 using LNF.Repository.Data;
 using LNF.Repository.Reporting;
+using LNF.Web;
+using Reports.Models;
 using System;
 using System.Linq;
 using System.Web.Mvc;
-using Reports.Models;
 
 namespace Reports.Controllers
 {
@@ -16,7 +16,7 @@ namespace Reports.Controllers
         [Route("")]
         public ActionResult Index()
         {
-            ViewBag.IsAdmin = CacheManager.Current.CurrentUser.HasPriv(ClientPrivilege.Administrator | ClientPrivilege.Developer);
+            ViewBag.IsAdmin = HttpContext.CurrentUser().HasPriv(ClientPrivilege.Administrator | ClientPrivilege.Developer);
             return View();
         }
 
@@ -58,6 +58,12 @@ namespace Reports.Controllers
                 case "durations-report":
                     action = "Durations";
                     controller = "Resource";
+
+                    if (int.TryParse(Request.QueryString["ReservationID"], out int reservationId))
+                    {
+                        routeValues = new { ReservationID = reservationId };
+                    }
+
                     break;
                 case "manager-usage-summary":
                     action = "ManagerUsageSummary";

@@ -1,4 +1,4 @@
-﻿@using LNF.Cache;
+﻿@using LNF.Web;
 @using System.Configuration;
 
 @{
@@ -17,8 +17,8 @@
     }
 
     string debugEmail = ConfigurationManager.AppSettings["DebugEmail"];
-    string currentUserEmail = CacheManager.Current.CurrentUser.Email;
-    int currentUserClientId = CacheManager.Current.CurrentUser.ClientID;
+    string currentUserEmail = Context.CurrentUser().Email;
+    int currentUserClientId = Context.CurrentUser().ClientID;
 }
 
 @section styles{

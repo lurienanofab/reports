@@ -1,5 +1,4 @@
-﻿using LNF;
-using LNF.Reporting;
+﻿using LNF.Reporting;
 using LNF.Repository;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reports.Models;
@@ -13,7 +12,7 @@ namespace Reports.Tests
         [TestMethod]
         public void CanUseManagerUsageReportMessageTemplate()
         {
-            using (ServiceProvider.Current.Resolver.GetInstance<IUnitOfWork>())
+            using (DA.StartUnitOfWork())
             {
                 //string expected;
                 string actual;

@@ -1,7 +1,7 @@
-﻿using LNF.Cache;
-using LNF.CommonTools;
+﻿using LNF.CommonTools;
 using LNF.Models.Data;
 using LNF.Reporting;
+using LNF.Web;
 using System;
 using System.Web.Mvc;
 
@@ -18,15 +18,15 @@ namespace Reports.Controllers
         [Route("individual/manager-usage-summary")]
         public ActionResult ManagerUsageSummary(int clientId = 0, DateTime? period = null)
         {
-            bool isAdmin = CacheManager.Current.CurrentUser.HasPriv(ClientPrivilege.Administrator | ClientPrivilege.Developer);
+            bool isAdmin = HttpContext.CurrentUser().HasPriv(ClientPrivilege.Administrator | ClientPrivilege.Developer);
 
             ViewBag.CanEmail = isAdmin;
             ViewBag.CanSelectUser = isAdmin;
 
             if (clientId == 0)
             { 
-                ViewBag.ClientID = CacheManager.Current.CurrentUser.ClientID;
-                ViewBag.DisplayName = CacheManager.Current.CurrentUser.DisplayName;
+                ViewBag.ClientID = HttpContext.CurrentUser().ClientID;
+                ViewBag.DisplayName = HttpContext.CurrentUser().DisplayName;
             }
             else
             { 
@@ -46,15 +46,15 @@ namespace Reports.Controllers
         [Route("individual/user-usage-summary")]
         public ActionResult UserUsageSummary(int clientId = 0, DateTime? period = null)
         {
-            bool isAdmin = CacheManager.Current.CurrentUser.HasPriv(ClientPrivilege.Administrator | ClientPrivilege.Developer);
+            bool isAdmin = HttpContext.CurrentUser().HasPriv(ClientPrivilege.Administrator | ClientPrivilege.Developer);
 
             ViewBag.CanEmail = isAdmin;
             ViewBag.CanSelectUser = isAdmin;
 
             if (clientId == 0 || !isAdmin)
             { 
-                ViewBag.ClientID = CacheManager.Current.CurrentUser.ClientID;
-                ViewBag.DisplayName = CacheManager.Current.CurrentUser.DisplayName;
+                ViewBag.ClientID = HttpContext.CurrentUser().ClientID;
+                ViewBag.DisplayName = HttpContext.CurrentUser().DisplayName;
             }
             else
             {

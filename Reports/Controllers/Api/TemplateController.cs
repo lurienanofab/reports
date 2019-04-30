@@ -60,7 +60,7 @@ namespace Reports.Controllers.Api
         [Route("api/template")]
         public IEnumerable<TemplateModel> Get(string report)
         {
-            return DA.Current.Query<Template>().Where(x => x.Report == report).Model<TemplateModel>();
+            return DA.Current.Query<Template>().Where(x => x.Report == report).CreateModels<TemplateModel>();
         }
     }
 }

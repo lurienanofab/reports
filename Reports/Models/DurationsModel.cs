@@ -1,8 +1,8 @@
-﻿using LNF.Models.Scheduler;
+﻿using LNF.Billing;
+using LNF.Models.Scheduler;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using LNF.Billing;
 
 namespace Reports.Models
 {
@@ -12,11 +12,11 @@ namespace Reports.Models
         public int ResourceID { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
-        public IEnumerable<ResourceModel> Resources { get; set; }
+        public IEnumerable<IResource> Resources { get; set; }
         public ReservationDateRange.DateRange Range { get; set; }
         public int? Zoom { get; set; }
 
-        public ResourceModel SelectedResource
+        public IResource SelectedResource
         {
             get
             {

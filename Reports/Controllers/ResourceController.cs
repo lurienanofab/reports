@@ -1,10 +1,9 @@
 ﻿using LNF;
 using LNF.Billing;
 using LNF.CommonTools;
-using LNF.Data;
 using LNF.Models.Data;
+using LNF.Models.PhysicalAccess;
 using LNF.Models.Scheduler;
-using LNF.PhysicalAccess;
 using LNF.Repository;
 using LNF.Repository.Scheduler;
 using Newtonsoft.Json;
@@ -40,7 +39,7 @@ namespace Reports.Controllers
         [Route("resource/durations")]
         public ActionResult Durations(DurationsModel model)
         {
-            model.Resources = DA.Current.Query<Resource>().Where(x => x.IsActive).OrderBy(x => x.ResourceName).Model<ResourceModel>();
+            model.Resources = DA.Current.Query<Resource>().Where(x => x.IsActive).OrderBy(x => x.ResourceName).CreateModels<IResource>();
 
             if (model.ReservationID > 0)
             {
@@ -89,7 +88,7 @@ namespace Reports.Controllers
             ViewBag.InLab = inlab;
             ViewBag.RunReport = run == "report";
 
-            ViewBag.ActiveClients = DA.Use<IClientManager>().GetActiveClients(startDate, endDate, ClientPrivilege.LabUser | ClientPrivilege.Staff)
+            ViewBag.ActiveClients = ServiceProvider.Current.Data.Client.GetActiveClients(startDate, endDate, ClientPrivilege.LabUser | ClientPrivilege.Staff)
                 .OrderBy(x => x.LName)
                 .ThenBy(x => x.FName)
                 .Select(x => new ClientItem()
@@ -100,7 +99,7 @@ namespace Reports.Controllers
                     FName = x.FName
                 }).ToList();
 
-            ViewBag.Resources = DA.Current.Query<Resource>().Where(x => x.IsActive).OrderBy(x => x.ResourceName).Select(x => new LNF.Scheduler.ResourceItem()
+            ViewBag.Resources = DA.Current.Query<Resource>().Where(x => x.IsActive).OrderBy(x => x.ResourceName).Select(x => new LNF.Scheduler.ResourceListItem()
             {
                 ResourceID = x.ResourceID,
                 ResourceName = x.ResourceName
@@ -218,10 +217,12 @@ namespace Reports.Controllers
 
         private RssFeed PopulateInLabRss(string roomName, string channelName = "", string userName = "")
         {
-            RssFeed rss = new RssFeed();
+            RssFeed rss = new RssFeed
+            {
+                Channel = new RssChannel(),
+                Version = "2.0"
+            };
 
-            rss.Channel = new RssChannel();
-            rss.Version = "2.0";
             rss.Channel.Title = GetRoomDisplayName(roomName);
             rss.Channel.PubDate = DateTime.Now;
             rss.Channel.LastBuildDate = DateTime.Now;
@@ -243,10 +244,12 @@ namespace Reports.Controllers
 
         private RssFeed PopulateLabActivityRss()
         {
-            RssFeed rss = new RssFeed();
+            RssFeed rss = new RssFeed
+            {
+                Channel = new RssChannel(),
+                Version = "2.0"
+            };
 
-            rss.Channel = new RssChannel();
-            rss.Version = "2.0";
             rss.Channel.Title = "Lab Activity";
             rss.Channel.PubDate = DateTime.Now;
             rss.Channel.LastBuildDate = DateTime.Now;
@@ -320,12 +323,14 @@ namespace Reports.Controllers
 
         private IList<InLabClient> GetCurrentUsersInRoom(string areaName)
         {
-            IList<Badge> inlab = ServiceProvider.Current.PhysicalAccess.CurrentlyInArea().ToList();
+            IList<Badge> inlab = ServiceProvider.Current.PhysicalAccess.GetCurrentlyInArea("all").ToList();
+
             List<InLabClient> result = inlab
                 .Where(x => x.CurrentAreaName == areaName)
                 .Select(x => new InLabClient(x))
                 .OrderBy(x => x.LastName)
                 .ToList();
+
             return result;
         }
     }

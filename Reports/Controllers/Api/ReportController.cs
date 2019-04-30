@@ -83,7 +83,7 @@ namespace Reports.Controllers.Api
         [Route("api/report/manager-usage-summary")]
         public ManagerUsageSummary GetManagerUsageSummary(DateTime period, string username, bool remote = false)
         {
-            ClientItem mgr = ClientItemUtility.CreateClientItems(DA.Current.Query<ClientInfo>().Where(x => x.UserName == username)).FirstOrDefault();
+            ReportingClientItem mgr = ClientItemUtility.CreateClientItems(DA.Current.Query<ClientInfo>().Where(x => x.UserName == username)).FirstOrDefault();
 
             if (mgr == null)
                 throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.NotFound, "Manager not found."));
@@ -94,7 +94,7 @@ namespace Reports.Controllers.Api
         [Route("api/report/manager-usage-summary")]
         public ManagerUsageSummary GetManagerUsageSummary(DateTime period, int clientId, bool remote = false)
         {
-            ClientItem mgr = ClientItemUtility.CreateClientItems(DA.Current.Query<ClientInfo>().Where(x => x.ClientID == clientId)).FirstOrDefault();
+            ReportingClientItem mgr = ClientItemUtility.CreateClientItems(DA.Current.Query<ClientInfo>().Where(x => x.ClientID == clientId)).FirstOrDefault();
 
             if (mgr != null)
                 return ReportGenerator.CreateManagerUsageSummary(period, mgr, remote);
@@ -107,9 +107,9 @@ namespace Reports.Controllers.Api
         {
             try
             {
-                var comparer = new ClientItemEqualityComparer();
+                var comparer = new ReportingClientItemEqualityComparer();
 
-                ClientItem mgr = ClientItemUtility.CreateClientItems(DA.Current.Query<ClientAccountInfo>()
+                ReportingClientItem mgr = ClientItemUtility.CreateClientItems(DA.Current.Query<ClientAccountInfo>()
                         .Where(x => x.ClientID == model.ClientID && x.EmailRank == 1))
                     .Distinct(comparer)
                     .FirstOrDefault();

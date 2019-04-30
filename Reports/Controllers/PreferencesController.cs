@@ -1,8 +1,8 @@
-﻿using LNF.Cache;
-using LNF.Models.Data;
+﻿using LNF.Models.Data;
 using LNF.Reporting;
 using LNF.Repository;
 using LNF.Repository.Reporting;
+using LNF.Web;
 using Reports.Models;
 using System;
 using System.Linq;
@@ -15,13 +15,15 @@ namespace Reports.Controllers
         [HttpGet, Route("preferences/email")]
         public ActionResult Email()
         {
-            var model = new EmailPreferenceModel();
+            var model = new EmailPreferenceModel
+            {
+                ClientID = HttpContext.CurrentUser().ClientID,
+                DisplayName = HttpContext.CurrentUser().DisplayName,
+                AvailableClients = ClientItemUtility.SelectCurrentActiveClients()
+            };
 
-            model.ClientID = CacheManager.Current.CurrentUser.ClientID;
-            model.DisplayName = CacheManager.Current.CurrentUser.DisplayName;
-            model.AvailableClients = ClientItemUtility.SelectCurrentActiveClients();
             model.AvailableItems = EmailPreferenceItem.Select(model.ClientID);
-            model.CanSelectUser = CacheManager.Current.CurrentUser.HasPriv(ClientPrivilege.Staff);
+            model.CanSelectUser = HttpContext.CurrentUser().HasPriv(ClientPrivilege.Staff);
 
             return View(model);
         }
@@ -31,7 +33,7 @@ namespace Reports.Controllers
         {
             model.AvailableClients = ClientItemUtility.SelectCurrentActiveClients();
             model.AvailableItems = EmailPreferenceItem.Select(model.ClientID);
-            model.CanSelectUser = CacheManager.Current.CurrentUser.HasPriv(ClientPrivilege.Staff);
+            model.CanSelectUser = HttpContext.CurrentUser().HasPriv(ClientPrivilege.Staff);
 
             if (model.Command == "save")
             {
