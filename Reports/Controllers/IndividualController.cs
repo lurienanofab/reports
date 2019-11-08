@@ -1,6 +1,6 @@
-﻿using LNF.CommonTools;
+﻿using LNF;
+using LNF.CommonTools;
 using LNF.Models.Data;
-using LNF.Reporting;
 using LNF.Web;
 using System;
 using System.Web.Mvc;
@@ -30,7 +30,7 @@ namespace Reports.Controllers
             }
             else
             { 
-                var c = ClientItemUtility.CreateClientItem(clientId);
+                var c = ServiceProvider.Current.Reporting.ClientItem.CreateClientItem(clientId);
                 ViewBag.ClientID = c.ClientID;
                 ViewBag.DisplayName = ClientItem.GetDisplayName(c.LName, c.FName);
             }
@@ -58,7 +58,7 @@ namespace Reports.Controllers
             }
             else
             {
-                var c = ClientItemUtility.CreateClientItem(clientId);
+                var c = ServiceProvider.Current.Reporting.ClientItem.CreateClientItem(clientId);
                 ViewBag.ClientID = c.ClientID;
                 ViewBag.DisplayName = ClientItem.GetDisplayName(c.LName, c.FName);
             }

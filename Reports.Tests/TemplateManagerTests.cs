@@ -1,4 +1,5 @@
-﻿using LNF.Reporting;
+﻿using LNF;
+using LNF.Reporting;
 using LNF.Repository;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reports.Models;
@@ -19,7 +20,7 @@ namespace Reports.Tests
 
                 //expected = "<p>Dear Test User,<br/><br/>Below is a summary of your group's usage charges in the LNF during the month of April 2017. The numbers include all LNF charges (room, tool and store). Please note that, while they are estimates that may still change, this message intends to give you an early reasonable indication of usage charges, before the final numbers are posted/invoiced.</p><hr/>";
                 var period = DateTime.Parse("2017-04-01");
-                var client = ClientItemUtility.CreateClientItem(2823);
+                var client = ServiceProvider.Current.Reporting.ClientItem.CreateClientItem(2823);
                 var model = ReportGenerator.CreateManagerUsageSummary(period, client, false);
                 var @class = string.Format("col-md-{0}", model.ShowSubsidyColumn ? "7" : "4");
 

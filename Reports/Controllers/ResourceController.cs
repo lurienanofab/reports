@@ -197,9 +197,14 @@ namespace Reports.Controllers
 
                     var json = await msg.Content.ReadAsStringAsync();
 
-                    var feed = JsonConvert.DeserializeObject<DataFeedModel<ToolUsageSummaryItem>>(json);
+                    var feed = JsonConvert.DeserializeObject<DataFeedResult>(json);
+                    // DataFeedModel<ToolUsageSummaryItem>>
 
-                    var items = feed.Data["default"];
+                    //DataFeedResultItemCollection items = feed.Data["default"];
+
+                    var converter = new ToolUsageSummaryItemConverter();
+
+                    var items = feed.Data.Items(converter);
 
                     ViewBag.Items = items;
                 }

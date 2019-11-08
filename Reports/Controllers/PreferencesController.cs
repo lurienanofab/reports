@@ -1,4 +1,5 @@
-﻿using LNF.Models.Data;
+﻿using LNF;
+using LNF.Models.Data;
 using LNF.Reporting;
 using LNF.Repository;
 using LNF.Repository.Reporting;
@@ -19,7 +20,7 @@ namespace Reports.Controllers
             {
                 ClientID = HttpContext.CurrentUser().ClientID,
                 DisplayName = HttpContext.CurrentUser().DisplayName,
-                AvailableClients = ClientItemUtility.SelectCurrentActiveClients()
+                AvailableClients = ServiceProvider.Current.Reporting.ClientItem.SelectCurrentActiveClients()
             };
 
             model.AvailableItems = EmailPreferenceItem.Select(model.ClientID);
@@ -31,7 +32,7 @@ namespace Reports.Controllers
         [HttpPost, Route("preferences/email")]
         public ActionResult Email(EmailPreferenceModel model)
         {
-            model.AvailableClients = ClientItemUtility.SelectCurrentActiveClients();
+            model.AvailableClients = ServiceProvider.Current.Reporting.ClientItem.SelectCurrentActiveClients();
             model.AvailableItems = EmailPreferenceItem.Select(model.ClientID);
             model.CanSelectUser = HttpContext.CurrentUser().HasPriv(ClientPrivilege.Staff);
 

@@ -1,4 +1,7 @@
-﻿namespace Reports.Models
+﻿using LNF.Models.Data;
+using System;
+
+namespace Reports.Models
 {
     public class ToolUsageSummaryItem
     {
@@ -27,5 +30,42 @@
         public decimal BilledAmountGross { get; set; }
         public decimal BilledAmountForgiven { get; set; }
         public decimal BilledAmountNet { get; set; }
+    }
+
+    public class ToolUsageSummaryItemConverter : IDataFeedResultItemConverter<ToolUsageSummaryItem>
+    {
+        public string Key => "default";
+
+        public ToolUsageSummaryItem Convert(DataFeedResultItem item)
+        {
+            return new ToolUsageSummaryItem
+            {
+                ResourceID = int.Parse(item["ResourceID"]),
+                ResourceName = item["ResourceName"],
+                ChargeTypeID = int.Parse(item["ChargeTypeID"]),
+                ChargeTypeName = item["ChargeTypeName"],
+                TotalUses = double.Parse(item["TotalUses"]),
+                TotalSchedHours = double.Parse(item["TotalSchedHours"]),
+                TotalActHours = double.Parse(item["TotalActHours"]),
+                NormalHoursGross = double.Parse(item["NormalHoursGross"]),
+                NormalHoursForgiven = double.Parse(item["NormalHoursForgiven"]),
+                NormalHoursNet = double.Parse(item["NormalHoursNet"]),
+                NormalAmountGross = decimal.Parse(item["NormalAmountGross"]),
+                NormalAmountForgiven = decimal.Parse(item["NormalAmountForgiven"]),
+                NormalAmountNet = decimal.Parse(item["NormalAmountNet"]),
+                OverTimeHoursGross = double.Parse(item["OverTimeHoursGross"]),
+                OverTimeHoursForgiven = double.Parse(item["OverTimeHoursForgiven"]),
+                OverTimeHoursNet = double.Parse(item["OverTimeHoursNet"]),
+                OverTimeAmountGross = decimal.Parse(item["OverTimeAmountGross"]),
+                OverTimeAmountForgiven = decimal.Parse(item["OverTimeAmountForgiven"]),
+                OverTimeAmountNet = decimal.Parse(item["OverTimeAmountNet"]),
+                BookingFeeGross = decimal.Parse(item["BookingFeeGross"]),
+                BookingFeeForgiven = decimal.Parse(item["BookingFeeForgiven"]),
+                BookingFeeNet = decimal.Parse(item["BookingFeeNet"]),
+                BilledAmountGross = decimal.Parse(item["BilledAmountGross"]),
+                BilledAmountForgiven = decimal.Parse(item["BilledAmountForgiven"]),
+                BilledAmountNet = decimal.Parse(item["BilledAmountNet"])
+            };
+        }
     }
 }

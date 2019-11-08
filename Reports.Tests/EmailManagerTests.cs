@@ -1,4 +1,5 @@
-﻿using LNF.Models.Reporting;
+﻿using LNF;
+using LNF.Models.Reporting;
 using LNF.Reporting;
 using LNF.Repository;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -16,10 +17,10 @@ namespace Reports.Tests
             using (DA.StartUnitOfWork())
             {
                 var period = DateTime.Parse("2017-04-01");
-                var mgr1 = ClientItemUtility.CreateClientItem(2823);
-                var mgr2 = ClientItemUtility.CreateClientItem(245);
+                var mgr1 = ServiceProvider.Current.Reporting.ClientItem.CreateClientItem(2823);
+                var mgr2 = ServiceProvider.Current.Reporting.ClientItem.CreateClientItem(245);
                 var expected = 2;
-                var actual = EmailManager.SendManagerSummaryReport(1301, period, new ReportingClientItem[] { mgr1, mgr2 }, string.Empty, string.Empty, false, false);
+                var actual = EmailManager.SendManagerSummaryReport(1301, period, new IReportingClient[] { mgr1, mgr2 }, string.Empty, string.Empty, false, false);
                 Assert.AreEqual(expected, actual);
             }
         }

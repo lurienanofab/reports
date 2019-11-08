@@ -1,13 +1,12 @@
-﻿using LNF.Billing;
+﻿using LNF;
+using LNF.Billing;
 using LNF.CommonTools;
 using LNF.Models.Reporting;
 using LNF.Models.Reporting.Individual;
-using LNF.Models.Scheduler;
 using LNF.Reporting;
 using LNF.Repository;
 using LNF.Repository.Data;
 using LNF.Repository.Scheduler;
-using LNF.Scheduler;
 using Reports.Models;
 using System;
 using System.Collections.Generic;
@@ -83,7 +82,12 @@ namespace Reports.Controllers.Api
         [Route("api/report/manager-usage-summary")]
         public ManagerUsageSummary GetManagerUsageSummary(DateTime period, string username, bool remote = false)
         {
-            ReportingClientItem mgr = ClientItemUtility.CreateClientItems(DA.Current.Query<ClientInfo>().Where(x => x.UserName == username)).FirstOrDefault();
+            IReportingClient mgr = null;
+
+            var c = DA.Current.Query<ClientInfo>().Where(x => x.UserName == username).FirstOrDefault();
+
+            if (c != null)
+                mgr = ServiceProvider.Current.Reporting.ClientItem.CreateClientItem(c.ClientID);
 
             if (mgr == null)
                 throw new HttpResponseException(Request.CreateErrorResponse(HttpStatusCode.NotFound, "Manager not found."));
@@ -94,7 +98,7 @@ namespace Reports.Controllers.Api
         [Route("api/report/manager-usage-summary")]
         public ManagerUsageSummary GetManagerUsageSummary(DateTime period, int clientId, bool remote = false)
         {
-            ReportingClientItem mgr = ClientItemUtility.CreateClientItems(DA.Current.Query<ClientInfo>().Where(x => x.ClientID == clientId)).FirstOrDefault();
+            IReportingClient mgr = ServiceProvider.Current.Reporting.ClientItem.CreateClientItem(clientId);
 
             if (mgr != null)
                 return ReportGenerator.CreateManagerUsageSummary(period, mgr, remote);
@@ -107,12 +111,7 @@ namespace Reports.Controllers.Api
         {
             try
             {
-                var comparer = new ReportingClientItemEqualityComparer();
-
-                ReportingClientItem mgr = ClientItemUtility.CreateClientItems(DA.Current.Query<ClientAccountInfo>()
-                        .Where(x => x.ClientID == model.ClientID && x.EmailRank == 1))
-                    .Distinct(comparer)
-                    .FirstOrDefault();
+                IReportingClient mgr = ServiceProvider.Current.Reporting.ClientItem.CreateClientItem(model.ClientID);
 
                 int count = Models.EmailManager.SendManagerSummaryReport(model.CurrentUserClientID, model.Period, new[] { mgr }, model.Message, model.CCAddress, model.Debug, model.IncludeRemote);
 
@@ -127,7 +126,12 @@ namespace Reports.Controllers.Api
         [Route("api/report/user-usage-summary")]
         public UserUsageSummary GetUserUsageSummary(DateTime period, string username)
         {
-            var user = ClientItemUtility.CreateClientItems(DA.Current.Query<ClientInfo>().Where(x => x.UserName == username)).FirstOrDefault();
+            var c = DA.Current.Query<ClientInfo>().Where(x => x.UserName == username).FirstOrDefault();
+
+            IReportingClient user = null;
+
+            if (c != null)
+                user = ServiceProvider.Current.Reporting.ClientItem.CreateClientItem(c.ClientID);
 
             if (user != null)
                 return ReportGenerator.CreateUserUsageSummary(period, user);
@@ -138,7 +142,7 @@ namespace Reports.Controllers.Api
         [Route("api/report/user-usage-summary")]
         public UserUsageSummary GetUserUsageSummary(DateTime period, int clientId)
         {
-            var user = ClientItemUtility.CreateClientItems(DA.Current.Query<ClientInfo>().Where(x => x.ClientID == clientId)).FirstOrDefault();
+            var user = ServiceProvider.Current.Reporting.ClientItem.CreateClientItem(clientId);
 
             if (user != null)
                 return ReportGenerator.CreateUserUsageSummary(period, user);

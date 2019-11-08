@@ -148,6 +148,7 @@ else
                         <tr>
                             <th>Priority</th>
                             <th>ReservationID</th>
+                            <th>Name</th>
                             <th style="text-align: center;">Started</th>
                             <th style="text-align: center;">Active</th>
                             <th style="text-align: center;">Repair</th>
@@ -165,7 +166,8 @@ else
                         {{#each durations}}
                         <tr>
                             <td>{{priorityGroup}}</td>
-                            <td>{{reservationId}}</td>
+                            <td><a href="@Url.Action("Durations")?ReservationID={{reservationId}}">{{reservationId}}</a></td>
+                            <td>{{displayName}}</td>
                             <td style="text-align: center;">{{started}}</td>
                             <td style="text-align: center;">{{active}}</td>
                             <td style="text-align: center;">{{repair}}</td>
@@ -208,7 +210,7 @@ else
 }
 
 @section scripts{
-    <script src="~/Scripts/durations.js?v=20170823a"></script>
+    <script src="~/Scripts/durations.js?v=20191108"></script>
 
     <script>
         function updateStartDate(d) {
@@ -295,6 +297,7 @@ else
                     result.durations.push({
                         priorityGroup: item.PriorityGroup,
                         reservationId: item.ReservationID,
+                        displayName: item.DisplayName,
                         started: item.IsStarted ? "Y" : "N",
                         active: item.IsActive ? "Y" : "N",
                         repair: item.IsRepair ? "Y" : "N",
