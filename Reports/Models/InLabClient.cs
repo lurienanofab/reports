@@ -1,11 +1,11 @@
-﻿using LNF.Models.PhysicalAccess;
+﻿using LNF.PhysicalAccess;
 using System;
 
 namespace Reports.Models
 {
     public class InLabClient
     {
-        private DateTime _now;
+        private readonly DateTime _now;
 
         public InLabClient() { }
 

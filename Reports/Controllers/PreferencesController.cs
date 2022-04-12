@@ -1,9 +1,7 @@
 ﻿using LNF;
-using LNF.Models.Data;
-using LNF.Reporting;
+using LNF.Data;
+using LNF.Impl.Repository.Reporting;
 using LNF.Repository;
-using LNF.Repository.Reporting;
-using LNF.Web;
 using Reports.Models;
 using System;
 using System.Linq;
@@ -11,20 +9,22 @@ using System.Web.Mvc;
 
 namespace Reports.Controllers
 {
-    public class PreferencesController : Controller
+    public class PreferencesController : ReportsController
     {
+        public PreferencesController(IProvider provider) : base(provider) { }
+
         [HttpGet, Route("preferences/email")]
         public ActionResult Email()
         {
             var model = new EmailPreferenceModel
             {
-                ClientID = HttpContext.CurrentUser().ClientID,
-                DisplayName = HttpContext.CurrentUser().DisplayName,
-                AvailableClients = ServiceProvider.Current.Reporting.ClientItem.SelectCurrentActiveClients()
+                ClientID = CurrentUser.ClientID,
+                DisplayName = CurrentUser.DisplayName,
+                AvailableClients = Provider.Reporting.ClientItem.SelectCurrentActiveClients()
             };
 
-            model.AvailableItems = EmailPreferenceItem.Select(model.ClientID);
-            model.CanSelectUser = HttpContext.CurrentUser().HasPriv(ClientPrivilege.Staff);
+            model.AvailableItems = EmailPreferenceItemFactory.Create(Provider).Select(model.ClientID);
+            model.CanSelectUser = CurrentUser.HasPriv(ClientPrivilege.Staff);
 
             return View(model);
         }
@@ -32,13 +32,13 @@ namespace Reports.Controllers
         [HttpPost, Route("preferences/email")]
         public ActionResult Email(EmailPreferenceModel model)
         {
-            model.AvailableClients = ServiceProvider.Current.Reporting.ClientItem.SelectCurrentActiveClients();
-            model.AvailableItems = EmailPreferenceItem.Select(model.ClientID);
-            model.CanSelectUser = HttpContext.CurrentUser().HasPriv(ClientPrivilege.Staff);
+            model.AvailableClients = Provider.Reporting.ClientItem.SelectCurrentActiveClients();
+            model.AvailableItems = EmailPreferenceItemFactory.Create(Provider).Select(model.ClientID);
+            model.CanSelectUser = CurrentUser.HasPriv(ClientPrivilege.Staff);
 
             if (model.Command == "save")
             {
-                var currentPrefs = DA.Current.Query<ClientEmailPreference>().Where(x => x.ClientID == model.ClientID).ToList();
+                var currentPrefs = Repository.Query<ClientEmailPreference>().Where(x => x.ClientID == model.ClientID).ToList();
 
                 foreach (var item in model.AvailableItems)
                 {
@@ -51,7 +51,7 @@ namespace Reports.Controllers
                     if (isChecked)
                     {
                         if (pref == null)
-                            DA.Current.Insert(new ClientEmailPreference()
+                            Repository.Insert(new ClientEmailPreference()
                             {
                                 EmailPreferenceID = item.EmailPreferenceID,
                                 ClientID = model.ClientID,

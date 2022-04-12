@@ -1,5 +1,4 @@
-﻿@using LNF.Models.Data;
-@using LNF.Repository.Data;
+﻿@using LNF.Data;
 @using LNF.Scheduler;
 
 @{
@@ -12,8 +11,8 @@
         returnTo = Session["return-to"].ToString();
     }
 
-    IEnumerable<ClientItem> activeClients = ViewBag.ActiveClients;
-    IEnumerable<ResourceItem> resources = ViewBag.Resources;
+    IEnumerable<IClient> activeClients = ViewBag.ActiveClients;
+    IEnumerable<ResourceListItem> resources = ViewBag.Resources;
 
     DateTime sd = ViewBag.StartDate;
     DateTime ed = ViewBag.EndDate;
@@ -23,26 +22,9 @@
     bool inlab = ViewBag.InLab;
     bool runReport = ViewBag.RunReport;
 
-    var resourceListItems = resources.Select(x => new SelectListItem()
-    {
-        Text = x.ResourceName,
-        Value = x.ResourceID.ToString(),
-        Selected = x.ResourceID == rid.GetValueOrDefault()
-    }).ToList();
-
-    var currentUserListItems = activeClients.Select(x => new SelectListItem()
-    {
-        Text = Client.GetDisplayName(x.LName, x.FName),
-        Value = x.ClientID.ToString(),
-        Selected = x.ClientID == cid.GetValueOrDefault()
-    }).ToList();
-
-    var reserverListItems = activeClients.Select(x => new SelectListItem()
-    {
-        Text = Client.GetDisplayName(x.LName, x.FName),
-        Value = x.ClientID.ToString(),
-        Selected = x.ClientID == reserver.GetValueOrDefault()
-    }).ToList();
+    List<SelectListItem> resourceListItems = ViewBag.ResourceListItems;
+    List<SelectListItem> currentUserListItems = ViewBag.CurrentUserListItems;
+    List<SelectListItem> reserverListItems = ViewBag.ReserverListItems;
 }
 
 @if (string.IsNullOrEmpty(returnTo))

@@ -1,6 +1,6 @@
 ﻿using LNF;
+using LNF.Impl.Repository.Scheduler;
 using LNF.Repository;
-using LNF.Repository.Scheduler;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,16 +30,17 @@ namespace Reports.Models
 
         }
 
-        public static LabStatus GetCurrentStatus()
+        public static LabStatus GetCurrentStatus(IProvider provider)
         {
-            LabStatus result = new LabStatus();
+            LabStatus result = new LabStatus
+            {
+                StatusDateTime = DateTime.Now
+            };
 
-            result.StatusDateTime = DateTime.Now;
-
-            var inArea = ServiceProvider.Current.PhysicalAccess.GetCurrentlyInArea("all");
+            var inArea = provider.PhysicalAccess.GetCurrentlyInArea("all");
             result.RoomOccupancies = inArea.GroupBy(x => x.CurrentAreaName).Select(x => new RoomOccupancy { RoomName = x.Key, Occupancy = x.Count() }).ToList();
 
-            var activeReservations = DA.Current.Query<Reservation>().Where(x => x.ActualBeginDateTime.HasValue && !x.ActualEndDateTime.HasValue && x.IsStarted && x.IsActive);
+            var activeReservations = provider.DataAccess.Session.Query<Reservation>().Where(x => x.ActualBeginDateTime.HasValue && !x.ActualEndDateTime.HasValue && x.IsStarted && x.IsActive);
             result.ActiveReservations = activeReservations.Select(x => new ActiveReservation()
             {
                 ReservationID = x.ReservationID,

@@ -1,11 +1,12 @@
 ﻿using LNF;
 using LNF.Billing;
 using LNF.CommonTools;
-using LNF.Models.Data;
-using LNF.Models.PhysicalAccess;
-using LNF.Models.Scheduler;
+using LNF.Data;
+using LNF.Impl;
+using LNF.Impl.Repository.Scheduler;
+using LNF.PhysicalAccess;
 using LNF.Repository;
-using LNF.Repository.Scheduler;
+using LNF.Scheduler;
 using Newtonsoft.Json;
 using Reports.Models;
 using System;
@@ -20,7 +21,7 @@ using System.Web.Mvc;
 
 namespace Reports.Controllers
 {
-    public class ResourceController : Controller
+    public class ResourceController : ReportsController
     {
         private static readonly string[] roomNames = { "Clean Room", "Wet Chemistry" };
 
@@ -29,6 +30,8 @@ namespace Reports.Controllers
             { "Clean Room", "Clean Room" },
             { "Wet Chemistry", "ROBIN" }
         };
+
+        public ResourceController(IProvider provider) : base(provider) { }
 
         [Route("resource")]
         public ActionResult Index()
@@ -39,11 +42,11 @@ namespace Reports.Controllers
         [Route("resource/durations")]
         public ActionResult Durations(DurationsModel model)
         {
-            model.Resources = DA.Current.Query<Resource>().Where(x => x.IsActive).OrderBy(x => x.ResourceName).CreateModels<IResource>();
+            model.Resources = Repository.Query<Resource>().Where(x => x.IsActive).OrderBy(x => x.ResourceName).CreateModels<IResource>();
 
             if (model.ReservationID > 0)
             {
-                var rsv = DA.Current.Single<Reservation>(model.ReservationID);
+                var rsv = Repository.Single<Reservation>(model.ReservationID);
 
                 if (rsv != null)
                 {
@@ -58,15 +61,15 @@ namespace Reports.Controllers
                 }
             }
 
-            ReservationDateRange.DateRange range = default(ReservationDateRange.DateRange);
+            DateRange range = default(DateRange);
 
             if (model.SelectedResource != null)
             {
                 var sd = model.GetStartDateTime();
                 var ed = model.GetEndDateTime();
                 var resourceId = model.SelectedResource.ResourceID;
-
-                range = ReservationDateRange.ExpandRange(resourceId, sd, ed);
+                var reservations = Provider.Scheduler.Reservation.GetReservations(sd, ed, resourceId: resourceId);
+                range = DateRange.ExpandRange(reservations, sd, ed);
             }
 
             model.Range = range;
@@ -88,7 +91,7 @@ namespace Reports.Controllers
             ViewBag.InLab = inlab;
             ViewBag.RunReport = run == "report";
 
-            ViewBag.ActiveClients = ServiceProvider.Current.Data.Client.GetActiveClients(startDate, endDate, ClientPrivilege.LabUser | ClientPrivilege.Staff)
+            var activeClients = Provider.Data.Client.GetActiveClients(startDate, endDate, ClientPrivilege.LabUser | ClientPrivilege.Staff)
                 .OrderBy(x => x.LName)
                 .ThenBy(x => x.FName)
                 .Select(x => new ClientItem()
@@ -99,11 +102,40 @@ namespace Reports.Controllers
                     FName = x.FName
                 }).ToList();
 
-            ViewBag.Resources = DA.Current.Query<Resource>().Where(x => x.IsActive).OrderBy(x => x.ResourceName).Select(x => new LNF.Scheduler.ResourceListItem()
+            ViewBag.ActiveClients = activeClients;
+
+            var resources = Repository.Query<Resource>().Where(x => x.IsActive).OrderBy(x => x.ResourceName).Select(x => new ResourceListItem()
             {
                 ResourceID = x.ResourceID,
                 ResourceName = x.ResourceName
             }).ToList();
+
+            ViewBag.Resources = resources;
+
+            var resourceListItems = resources.Select(x => new SelectListItem()
+            {
+                Text = x.ResourceName,
+                Value = x.ResourceID.ToString(),
+                Selected = x.ResourceID == rid.GetValueOrDefault()
+            }).ToList();
+
+            var currentUserListItems = activeClients.Select(x => new SelectListItem()
+            {
+                Text = Clients.GetDisplayName(x.LName, x.FName),
+                Value = x.ClientID.ToString(),
+                Selected = x.ClientID == cid.GetValueOrDefault()
+            }).ToList();
+
+            var reserverListItems = activeClients.Select(x => new SelectListItem()
+            {
+                Text = Clients.GetDisplayName(x.LName, x.FName),
+                Value = x.ClientID.ToString(),
+                Selected = x.ClientID == reserver.GetValueOrDefault()
+            }).ToList();
+
+            ViewBag.ResourceListItems = resourceListItems;
+            ViewBag.CurrentUserListItems = currentUserListItems;
+            ViewBag.ReserverListItems = reserverListItems;
 
             return View();
         }
@@ -262,7 +294,7 @@ namespace Reports.Controllers
             rss.Channel.Description = "The current status of the LNF.";
             rss.Channel.Link = string.Empty;
 
-            LabStatus labStatus = LabStatus.GetCurrentStatus();
+            LabStatus labStatus = LabStatus.GetCurrentStatus(Provider);
 
             rss.Channel.Items = new List<RssItem>();
 
@@ -328,7 +360,7 @@ namespace Reports.Controllers
 
         private IList<InLabClient> GetCurrentUsersInRoom(string areaName)
         {
-            IList<Badge> inlab = ServiceProvider.Current.PhysicalAccess.GetCurrentlyInArea("all").ToList();
+            IList<Badge> inlab = Provider.PhysicalAccess.GetCurrentlyInArea("all").ToList();
 
             List<InLabClient> result = inlab
                 .Where(x => x.CurrentAreaName == areaName)

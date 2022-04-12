@@ -1,4 +1,4 @@
-﻿using LNF.Models.Reporting;
+﻿using LNF.Reporting;
 using System.Collections.Generic;
 
 namespace Reports.Models

@@ -1,23 +1,28 @@
 ﻿using LNF;
 using LNF.CommonTools;
-using LNF.Models.Mail;
-using LNF.Models.Reporting;
-using LNF.Models.Reporting.Individual;
+using LNF.Mail;
 using LNF.Reporting;
-using LNF.Repository;
-using LNF.Repository.Reporting;
+using LNF.Reporting.Individual;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using System.Web;
 
 namespace Reports.Models
 {
-    public static class EmailManager
+    public class EmailManager
     {
-        public static IEnumerable<IReportingClient> GetManagers(int currentUserClientId, string group, DateTime period, bool includeRemote)
+        protected IProvider Provider { get; }
+
+        public EmailManager(IProvider provider)
         {
-            var activeManagers = ServiceProvider.Current.Reporting.ClientItem.SelectActiveManagers(period);
+            Provider = provider;
+        }
+
+        public IEnumerable<IReportingClient> GetManagers(string group, DateTime period)
+        {
+            var activeManagers = Provider.Reporting.ClientItem.SelectActiveManagers(period);
 
             IEnumerable<IReportingClient> filtered;
 
@@ -66,13 +71,15 @@ namespace Reports.Models
             return filtered;
         }
 
-        public static IEnumerable<EmailMessage> CreateManagerUsageSummaryEmails(int currentUserClientId, DateTime period, IEnumerable<IReportingClient> managers, bool includeRemote)
+        public IEnumerable<EmailMessage> CreateManagerUsageSummaryEmails(DateTime period, IEnumerable<IReportingClient> managers, bool includeRemote)
         {
             int managerSummaryReportEmailPreferenceId = 1;
 
-            var prefs = DA.Current.Query<ClientEmailPreference>().Where(x => x.EmailPreferenceID == managerSummaryReportEmailPreferenceId).ToList();
+            var prefs = Provider.Reporting.ClientEmailPreference.GetClientEmailPreferences(managerSummaryReportEmailPreferenceId);
 
             var sendTo = new List<ManagerSummaryReportEmailArgs>();
+
+            var generator = new ReportGenerator(Provider);
 
             foreach (var mgr in managers)
             {
@@ -82,19 +89,11 @@ namespace Reports.Models
                 if (!exists)
                 {
                     // add opt-in pref by default
-                    var p = new ClientEmailPreference()
-                    {
-                        EmailPreferenceID = managerSummaryReportEmailPreferenceId,
-                        ClientID = mgr.ClientID,
-                        EnableDate = DateTime.Now,
-                        DisableDate = null
-                    };
+                    var p = Provider.Reporting.ClientEmailPreference.AddClientEmailPreference(managerSummaryReportEmailPreferenceId, mgr.ClientID);
 
-                    DA.Current.Insert(p);
+                    var items = generator.GetManagerUsageSummaryItems(mgr.ClientID, period, includeRemote);
 
-                    var items = ReportGenerator.GetManagerUsageSummaryItems(mgr.ClientID, period, includeRemote);
-
-                    var model = ReportGenerator.CreateManagerUsageSummary(period, mgr, items);
+                    var model = generator.CreateManagerUsageSummary(period, mgr, items);
 
                     if (model.Accounts.Count() > 0)
                     {
@@ -110,9 +109,9 @@ namespace Reports.Models
                     {
                         // client has not opted out
 
-                        var items = ReportGenerator.GetManagerUsageSummaryItems(mgr.ClientID, period, includeRemote);
+                        var items = generator.GetManagerUsageSummaryItems(mgr.ClientID, period, includeRemote);
 
-                        var model = ReportGenerator.CreateManagerUsageSummary(period, mgr, items);
+                        var model = generator.CreateManagerUsageSummary(period, mgr, items);
 
                         if (model.Accounts.Count() > 0)
                         {
@@ -126,11 +125,13 @@ namespace Reports.Models
             string senderName = ConfigurationManager.AppSettings["ManagerUsageSummarySenderName"]; //LNF System
             string subject = ConfigurationManager.AppSettings["ManagerUsageSummarySubject"]; //LNF Manager Usage Summary Report for {0:MMM yyyy}
 
+            List<EmailMessage> result = new List<EmailMessage>();
+
             foreach (var args in sendTo)
             {
                 if (args.Model.Accounts.Count() > 0)
                 {
-                    var emailMessage = new EmailMessage()
+                    result.Add(new EmailMessage()
                     {
                         RecipientEmail = args.Manager.Email,
                         RecipientName = args.Manager.LName + ", " + args.Manager.FName,
@@ -138,29 +139,29 @@ namespace Reports.Models
                         SenderName = senderName,
                         Subject = string.Format(subject, period),
                         Body = GetManagerSummaryReportBody(args)
-                    };
-
-                    yield return emailMessage;
+                    });
                 }
             }
+
+            return result;
         }
 
-        public static int SendManagerSummaryReport(int currentUserClientId, DateTime period, string message, string ccaddr, bool debug, bool includeRemote)
+        public int SendManagerSummaryReport(int currentUserClientId, DateTime period, string message, string ccaddr, bool debug, bool includeRemote)
         {
             // Get all active managers and check for any that do not
             // already have a preference. They will be opted in by default.
 
-            var activeManagers = GetManagers(currentUserClientId, "all-internal-external", period, includeRemote);
+            var activeManagers = GetManagers("all-internal-external", period);
             return SendManagerSummaryReport(currentUserClientId, period, activeManagers, message, ccaddr, debug, includeRemote);
         }
 
-        public static int SendManagerSummaryReport(int currentUserClientId, DateTime period, IEnumerable<IReportingClient> managers, string message, string ccaddr, bool debug, bool includeRemote)
+        public int SendManagerSummaryReport(int currentUserClientId, DateTime period, IEnumerable<IReportingClient> managers, string message, string ccaddr, bool debug, bool includeRemote)
         {
-            var emails = CreateManagerUsageSummaryEmails(currentUserClientId, period, managers, includeRemote);
+            var emails = CreateManagerUsageSummaryEmails(period, managers, includeRemote);
             return SendManagerSummaryReport(currentUserClientId, emails, message, ccaddr, debug);
         }
 
-        public static int SendManagerSummaryReport(int currentUserClientId, IEnumerable<EmailMessage> emails, string message, string ccaddr, bool debug)
+        public int SendManagerSummaryReport(int currentUserClientId, IEnumerable<EmailMessage> emails, string message, string ccaddr, bool debug)
         {
             int count = 0;
 
@@ -171,7 +172,7 @@ namespace Reports.Models
             foreach (var e in emails)
             {
                 string toAddr = debug && !string.IsNullOrEmpty(debugEmail) ? debugEmail : e.RecipientEmail;
-                
+
                 string body;
 
                 if (string.IsNullOrEmpty(message))
@@ -192,7 +193,7 @@ namespace Reports.Models
                     IsHtml = true
                 };
 
-                ServiceProvider.Current.Mail.SendMessage(sendMessageArgs);
+                Provider.Mail.SendMessage(sendMessageArgs);
 
                 count += 1;
             }
@@ -200,13 +201,13 @@ namespace Reports.Models
             return count;
         }
 
-        private static string GetManagerSummaryReportBody(ManagerSummaryReportEmailArgs args)
+        private string GetManagerSummaryReportBody(ManagerSummaryReportEmailArgs args)
         {
             var model = args.Model;
             var client = args.Manager;
             var width = args.Model.ShowSubsidyColumn ? 1000 : 800;
 
-            var unsubscribeUrl = ServiceProvider.Current.Context.GetAbsolutePath(string.Format("~/unsubscribe/{0}", Encryption.SHA256(args.Preference.ClientEmailPreferenceID.ToString())));
+            var unsubscribeUrl = VirtualPathUtility.ToAbsolute(string.Format("~/unsubscribe/{0}", Encryption.SHA256.EncryptText(args.Preference.ClientEmailPreferenceID.ToString())));
 
             string result = TemplateManager.ManagerUsageSummaryEmailTemplate(new { client, model, width, unsubscribeUrl });
 
@@ -254,69 +255,11 @@ namespace Reports.Models
 
             //return result;
         }
-
-        private static string CreateManagerUsageSummaryTable(IEnumerable<ManagerUsageSummaryAccount> items, string header, bool showSubsidyColumn)
-        {
-            string result = string.Empty;
-
-            result += "<table border=\"1\" width=\"900\" cellpadding=\"5\" bordercolor=\"#cccccc\" style=\"margin-top: 20px; border-collapse: collapse;\">";
-            result += "<thead>";
-            result += "<tr bgcolor=\"#eeeeee\">";
-            result += string.Format("<th>{0}</th>", header);
-            if (showSubsidyColumn)
-            {
-                result += "<th width=\"150\">Net Charges</th>";
-                result += "<th width=\"150\">Usage Charges</th>";
-                result += "<th width=\"150\">Subsidy</th>";
-            }
-            else
-            {
-                result += "<th>Usage Charges</th>";
-            }
-            result += "</tr>";
-            result += "</thead>";
-            result += "<tbody>";
-            foreach (var item in items)
-            {
-                result += "<tr>";
-                result += string.Format("<td>{0}</td>", item.Name);
-                if (showSubsidyColumn)
-                {
-                    result += string.Format("<td align=\"right\">{0:C}</td>", item.NetCharge);
-                    result += string.Format("<td align=\"right\">{0:C}</td>", item.UsageCharge);
-                    result += string.Format("<td align=\"right\">{0:C}</td>", item.Subsidy);
-                }
-                else
-                {
-                    result += string.Format("<td align=\"right\">{0:C}</td>", item.UsageCharge);
-                }
-                result += "</tr>";
-            }
-            result += "</tbody>";
-            result += "<tfoot>";
-            result += "<tr bgcolor=\"#eeeeee\">";
-            result += "<td><b>Total</b></td>";
-            if (showSubsidyColumn)
-            {
-                result += string.Format("<td align=\"right\"><b>{0:C}</b></td>", items.Sum(x => x.NetCharge));
-                result += string.Format("<td align=\"right\"><b>{0:C}</b></td>", items.Sum(x => x.UsageCharge));
-                result += string.Format("<td align=\"right\"><b>{0:C}</b></td>", items.Sum(x => x.Subsidy));
-            }
-            else
-            {
-                result += string.Format("<td align=\"right\"><b>{0:C}</b></td>", items.Sum(x => x.UsageCharge));
-            }
-            result += "</tr>";
-            result += "</tfoot>";
-            result += "</table>";
-
-            return result;
-        }
     }
 
     public struct ManagerSummaryReportEmailArgs
     {
-        public static ManagerSummaryReportEmailArgs Create(ClientEmailPreference pref, ManagerUsageSummary model, IReportingClient manager)
+        public static ManagerSummaryReportEmailArgs Create(IClientEmailPreference pref, ManagerUsageSummary model, IReportingClient manager)
         {
             var result = new ManagerSummaryReportEmailArgs
             {
@@ -328,7 +271,7 @@ namespace Reports.Models
             return result;
         }
 
-        public ClientEmailPreference Preference { get; private set; }
+        public IClientEmailPreference Preference { get; private set; }
         public ManagerUsageSummary Model { get; private set; }
         public IReportingClient Manager { get; private set; }
     }

@@ -1,9 +1,8 @@
-﻿using LNF.CommonTools;
-using LNF.Models.Data;
-using LNF.Repository;
-using LNF.Repository.Data;
-using LNF.Repository.Reporting;
-using LNF.Web;
+﻿using LNF;
+using LNF.CommonTools;
+using LNF.Data;
+using LNF.Impl.Repository.Data;
+using LNF.Impl.Repository.Reporting;
 using Reports.Models;
 using System;
 using System.Linq;
@@ -11,20 +10,22 @@ using System.Web.Mvc;
 
 namespace Reports.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController : ReportsController
     {
+        public HomeController(IProvider provider) : base(provider) { }
+
         [Route("")]
         public ActionResult Index()
         {
-            ViewBag.IsAdmin = HttpContext.CurrentUser().HasPriv(ClientPrivilege.Administrator | ClientPrivilege.Developer);
+            ViewBag.IsAdmin = CurrentUser.HasPriv(ClientPrivilege.Administrator | ClientPrivilege.Developer);
             return View();
         }
 
         [Route("unsubscribe/{hash}")]
         public ActionResult Unsubscribe(string hash)
         {
-            var prefs = DA.Current.Query<ClientEmailPreference>().Where(x => x.DisableDate == null).ToList();
-            var p = prefs.FirstOrDefault(x => hash == Encryption.SHA256(x.ClientEmailPreferenceID.ToString()));
+            var prefs = Repository.Query<ClientEmailPreference>().Where(x => x.DisableDate == null).ToList();
+            var p = prefs.FirstOrDefault(x => hash == Encryption.SHA256.EncryptText(x.ClientEmailPreferenceID.ToString()));
 
             string message = string.Empty;
             string errmsg = string.Empty;
@@ -32,8 +33,8 @@ namespace Reports.Controllers
             if (p != null)
             {
                 p.DisableDate = DateTime.Now;
-                var item = DA.Current.Single<EmailPreference>(p.EmailPreferenceID);
-                var c = DA.Current.Query<ClientInfo>().First(x => x.ClientID == p.ClientID);
+                var item = Repository.Single<EmailPreference>(p.EmailPreferenceID);
+                var c = Repository.Query<ClientInfo>().First(x => x.ClientID == p.ClientID);
                 message = string.Format("Your email <strong>{0}</strong> has been successfully unsubscribed. You will no longer receive emails for <strong>{1}</strong>", c.Email, item.ReportName);
             }
             else
@@ -48,8 +49,8 @@ namespace Reports.Controllers
         [Route("dispatch/{name?}")]
         public ActionResult Dispatch(string name = null, string returnTo = null)
         {
-            string action = "Index";
-            string controller = "Home";
+            string action;
+            string controller;
 
             object routeValues = null;
 
@@ -68,6 +69,10 @@ namespace Reports.Controllers
                 case "manager-usage-summary":
                     action = "ManagerUsageSummary";
                     controller = "Individual";
+                    break;
+                case "manager-usage-emails":
+                    action = "Email";
+                    controller = "Admin";
                     break;
                 case "all-tool-usage-summary":
                     action = "ToolUsageSummary";

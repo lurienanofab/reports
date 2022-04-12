@@ -1,5 +1,5 @@
 ﻿using LNF.Billing;
-using LNF.Models.Scheduler;
+using LNF.Scheduler;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +13,7 @@ namespace Reports.Models
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public IEnumerable<IResource> Resources { get; set; }
-        public ReservationDateRange.DateRange Range { get; set; }
+        public DateRange Range { get; set; }
         public int? Zoom { get; set; }
 
         public IResource SelectedResource
@@ -29,7 +29,7 @@ namespace Reports.Models
 
         public DateTime GetStartDateTime()
         {
-            if (Range == default(ReservationDateRange.DateRange))
+            if (Range == default(DateRange))
                 return StartDate.GetValueOrDefault(DateTime.Now.Date.AddDays(-1));
             else
                 return Range.StartDate;
@@ -37,7 +37,7 @@ namespace Reports.Models
 
         public DateTime GetEndDateTime()
         {
-            if (Range == default(ReservationDateRange.DateRange))
+            if (Range == default(DateRange))
                 return EndDate.GetValueOrDefault(GetStartDateTime().AddDays(1));
             else
                 return Range.EndDate;

@@ -1,5 +1,4 @@
-﻿@using LNF.Web;
-@using System.Configuration;
+﻿@using System.Configuration;
 
 @{
     ViewBag.Title = "Manager Usage Summary";
@@ -17,8 +16,8 @@
     }
 
     string debugEmail = ConfigurationManager.AppSettings["DebugEmail"];
-    string currentUserEmail = Context.CurrentUser().Email;
-    int currentUserClientId = Context.CurrentUser().ClientID;
+    string currentUserEmail = ViewBag.CurrentUserEmail;
+    int currentUserClientId = ViewBag.CurrentUserClientID;
 }
 
 @section styles{

@@ -1,17 +1,16 @@
 ﻿using LNF.Billing;
-using LNF.Repository;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 
 namespace Reports.Tests
 {
     [TestClass]
-    public class ReservationDateRangeTests
+    public class ReservationDateRangeTests : TestBase
     {
         [TestMethod]
         public void CanCreateReservationDateRange()
         {
-            using (DA.StartUnitOfWork())
+            using (StartUnitOfWork())
             {
                 //var a = RunTest(DateTime.Parse("2017-07-03 10:30"), DateTime.Parse("2017-07-04 14:00"), 14021);
                 //var b = RunTest(DateTime.Parse("2017-07-03 10:00"), DateTime.Parse("2017-07-04 12:00"), 14021);
@@ -30,9 +29,10 @@ namespace Reports.Tests
 
         private ReservationDurations RunTest(DateTime sd, DateTime ed, int resourceId)
         {
-            var dr = ReservationDateRange.ExpandRange(resourceId, sd, ed);
-            var range = new ReservationDateRange(resourceId, dr);
-            return range.CreateReservationDurations();
+            var reservations = Provider.Scheduler.Reservation.GetReservations(sd, ed, resourceId: resourceId);
+            var costs = Provider.Data.Cost.FindToolCosts(resourceId, ed);
+            var durations = new ReservationDurations(reservations, costs, sd, ed);
+            return durations;
         }
     }
 }

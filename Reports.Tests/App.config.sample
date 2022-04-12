@@ -1,33 +1,38 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <configuration>
-    <configSections>
-        <sectionGroup name="lnf">
-            <section name="provider" type="LNF.ServiceProviderSection, LNF" />
-        </sectionGroup>
-    </configSections>
+  <configSections>
+    <sectionGroup name="lnf">
+      <section name="provider" type="LNF.Configuration, LNF"/>
+    </sectionGroup>
+  </configSections>
 
-    <lnf>
-        <provider production="false">
-            <context loginUrl="/login" />
-            <dataAccess showSql="true" universalPassword="xxxxx" />
-            <email host="xxxxx" />
-            <control host="xxxxx" />
-            <log name="Reports.Tests" enabled="true" />
-        </provider>
-    </lnf>
+  <lnf>
+    <provider production="false">
+      <context loginUrl="/login"/>
+      <dataAccess showSql="xxxxx" universalPassword="xxxxx"/>
+      <email host="xxxxx" port="xxxxx" log="true"/>
+      <control host="xxxxx"/>
+      <log name="Reports.Tests" enabled="true"/>
+    </provider>
+  </lnf>
 
-    <connectionStrings>
-        <add name="cnSselData" connectionString="xxxxx"/>
-        <add name="cnProwatch" connectionString="xxxxx" />
-    </connectionStrings>
+  <connectionStrings>
+    <add name="cnSselData" connectionString="xxxxx" />
+    <add name="cnProwatch" connectionString="xxxxx" />
+  </connectionStrings>
 
-    <appSettings>
-        <add key="DebugEmail" value="xxxxx" />
-        <add key="SecretKey" value="xxxxx" />
-        <add key="TemplateDirectory" value="xxxxx" />
-        <add key="MongoConnectionString" value="xxxxx"/>
-        <add key="CurrentUserName" value="xxxxx" />
-        <add key="CurrentRoles" value="xxxxx" />
-        <add key="CurrentAppRoot" value="xxxxx" />
-    </appSettings>
+  <appSettings>
+    <add key="TemplateBasePath" value="xxxxx" />
+    <add key="SecretKey" value="xxxxx"/>
+    <add key="SecurePath" value="xxxxx"/>
+    <add key="FeedBaseUrl" value="xxxxx"/>
+    <add key="ManagerUsageSummarySenderEmail" value="xxxxx"/>
+    <add key="ManagerUsageSummarySenderName" value="xxxxx"/>
+    <add key="ManagerUsageSummarySubject" value="xxxxx"/>
+    <add key="DebugEmail" value="xxxxx"/>
+    <add key="ApiBaseUrl" value="xxxxx"/>
+    <add key="BasicAuthUsername" value="xxxxx"/>
+    <add key="BasicAuthPassword" value="xxxxx"/>
+    <add key="MongoConnectionString" value="xxxxx"/>
+  </appSettings>
 </configuration>

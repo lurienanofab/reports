@@ -1,14 +1,15 @@
 ﻿using LNF;
 using LNF.CommonTools;
-using LNF.Models.Data;
-using LNF.Web;
+using LNF.Data;
 using System;
 using System.Web.Mvc;
 
 namespace Reports.Controllers
 {
-    public class IndividualController : Controller
+    public class IndividualController : ReportsController
     {
+        public IndividualController(IProvider provider) : base(provider) { }
+
         [Route("individual")]
         public ActionResult Index()
         {
@@ -18,21 +19,21 @@ namespace Reports.Controllers
         [Route("individual/manager-usage-summary")]
         public ActionResult ManagerUsageSummary(int clientId = 0, DateTime? period = null)
         {
-            bool isAdmin = HttpContext.CurrentUser().HasPriv(ClientPrivilege.Administrator | ClientPrivilege.Developer);
+            bool isAdmin = CurrentUser.HasPriv(ClientPrivilege.Administrator | ClientPrivilege.Developer);
 
             ViewBag.CanEmail = isAdmin;
             ViewBag.CanSelectUser = isAdmin;
 
             if (clientId == 0)
-            { 
-                ViewBag.ClientID = HttpContext.CurrentUser().ClientID;
-                ViewBag.DisplayName = HttpContext.CurrentUser().DisplayName;
+            {
+                ViewBag.ClientID = CurrentUser.ClientID;
+                ViewBag.DisplayName = CurrentUser.DisplayName;
             }
             else
-            { 
-                var c = ServiceProvider.Current.Reporting.ClientItem.CreateClientItem(clientId);
+            {
+                var c = Provider.Reporting.ClientItem.CreateClientItem(clientId);
                 ViewBag.ClientID = c.ClientID;
-                ViewBag.DisplayName = ClientItem.GetDisplayName(c.LName, c.FName);
+                ViewBag.DisplayName = Clients.GetDisplayName(c.LName, c.FName);
             }
 
             if (period == null)
@@ -40,27 +41,30 @@ namespace Reports.Controllers
             else
                 ViewBag.Period = period.Value;
 
+            ViewBag.CurrentUserClientID = CurrentUser.ClientID;
+            ViewBag.CurrentUserEmail = CurrentUser.Email;
+
             return View();
         }
 
         [Route("individual/user-usage-summary")]
         public ActionResult UserUsageSummary(int clientId = 0, DateTime? period = null)
         {
-            bool isAdmin = HttpContext.CurrentUser().HasPriv(ClientPrivilege.Administrator | ClientPrivilege.Developer);
+            bool isAdmin = CurrentUser.HasPriv(ClientPrivilege.Administrator | ClientPrivilege.Developer);
 
             ViewBag.CanEmail = isAdmin;
             ViewBag.CanSelectUser = isAdmin;
 
             if (clientId == 0 || !isAdmin)
-            { 
-                ViewBag.ClientID = HttpContext.CurrentUser().ClientID;
-                ViewBag.DisplayName = HttpContext.CurrentUser().DisplayName;
+            {
+                ViewBag.ClientID = CurrentUser.ClientID;
+                ViewBag.DisplayName = CurrentUser.DisplayName;
             }
             else
             {
-                var c = ServiceProvider.Current.Reporting.ClientItem.CreateClientItem(clientId);
+                var c = Provider.Reporting.ClientItem.CreateClientItem(clientId);
                 ViewBag.ClientID = c.ClientID;
-                ViewBag.DisplayName = ClientItem.GetDisplayName(c.LName, c.FName);
+                ViewBag.DisplayName = Clients.GetDisplayName(c.LName, c.FName);
             }
 
             if (period == null)

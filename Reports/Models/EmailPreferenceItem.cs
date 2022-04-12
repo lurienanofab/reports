@@ -1,6 +1,6 @@
-﻿using LNF.Repository;
-using LNF.Repository.Reporting;
-using System;
+﻿using LNF;
+using LNF.DataAccess;
+using LNF.Impl.Repository.Reporting;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -14,24 +14,42 @@ namespace Reports.Models
         public string ReportName { get; set; }
         public string Description { get; set; }
         public bool Active { get; set; }
+    }
 
-        public static IEnumerable<EmailPreferenceItem> Select(int clientId)
+    public class EmailPreferenceItemFactory
+    {
+        public IProvider Provider { get; }
+
+        private EmailPreferenceItemFactory(IProvider provider)
         {
-            var prefs = DA.Current.Query<EmailPreference>().ToList();
+            Provider = provider;
+        }
 
-            var cp = DA.Current.Query<ClientEmailPreference>().Where(x => x.ClientID == clientId && x.DisableDate == null).ToList();
+        public static EmailPreferenceItemFactory Create(IProvider provider)
+        {
+            return new EmailPreferenceItemFactory(provider);
+        }
+
+        public ISession Session => Provider.DataAccess.Session;
+
+        public IEnumerable<EmailPreferenceItem> Select(int clientId)
+        {
+            var prefs = Session.Query<EmailPreference>().ToList();
+
+            var cp = Session.Query<ClientEmailPreference>().Where(x => x.ClientID == clientId && x.DisableDate == null).ToList();
 
             var result = new List<EmailPreferenceItem>();
 
             foreach (var p in prefs)
             {
-                var item = new EmailPreferenceItem();
-
-                item.EmailPreferenceID = p.EmailPreferenceID;
-                item.ReportName = p.ReportName;
-                item.Description = p.Description;
-                item.ClientID = clientId;
-                item.Active = cp.Any(x => x.EmailPreferenceID == p.EmailPreferenceID);
+                var item = new EmailPreferenceItem
+                {
+                    EmailPreferenceID = p.EmailPreferenceID,
+                    ReportName = p.ReportName,
+                    Description = p.Description,
+                    ClientID = clientId,
+                    Active = cp.Any(x => x.EmailPreferenceID == p.EmailPreferenceID)
+                };
 
                 result.Add(item);
             }

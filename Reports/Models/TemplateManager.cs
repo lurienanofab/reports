@@ -1,54 +1,53 @@
-﻿using System.Linq;
-using HandlebarsDotNet;
+﻿using HandlebarsDotNet;
 using System;
-using System.Configuration;
+using System.Collections.Concurrent;
+using System.IO;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using LNF.Repository;
-using LNF.Repository.Reporting;
 
 namespace Reports.Models
 {
     public static class TemplateManager
     {
-        private readonly static Func<object, string> _managerUsageSummaryEmailTemplate;
+        private static readonly ConcurrentDictionary<string, HandlebarsTemplate<object, object>> _templates = new ConcurrentDictionary<string, HandlebarsTemplate<object, object>>();
+
+        private static string _basePath;
 
         static TemplateManager()
         {
-            Handlebars.RegisterHelper("format_currency", (writer, context, parameters) =>
+            Handlebars.RegisterHelper("format_currency", (output, context, arguments) =>
             {
                 double val = 0;
 
-                if (parameters.Length > 0)
+                if (arguments.Length > 0)
                 {
-                    if (!double.TryParse(parameters[0].ToString(), out val))
+                    if (!double.TryParse(arguments[0].ToString(), out val))
                         val = 0;
                 }
 
-                writer.WriteSafeString(val.ToString("C"));
+                output.WriteSafeString(val.ToString("C"));
             });
 
-            Handlebars.RegisterHelper("format_date", (writer, context, parameters) =>
+            Handlebars.RegisterHelper("format_date", (output, context, arguments) =>
             {
                 DateTime d = DateTime.Now;
                 string format = "M/d/yyyy h:mm:ss tt";
 
-                if (parameters.Length > 0)
+                if (arguments.Length > 0)
                 {
-                    if (!DateTime.TryParse(parameters[0].ToString(), out d))
+                    if (!DateTime.TryParse(arguments[0].ToString(), out d))
                         d = DateTime.Now;
                 }
 
-                if (parameters.Length > 1)
+                if (arguments.Length > 1)
                 {
-                    format = parameters[1].ToString();
+                    format = arguments[1].ToString();
                 }
 
-                if (parameters.Length > 2)
+                if (arguments.Length > 2)
                 {
                     Func<int, DateTime, DateTime> operation = null;
 
-                    string value = parameters[2].ToString();
+                    string value = arguments[2].ToString();
 
                     var matches = Regex.Match(value, "(\\+|-)(\\d+) (day|month|year|hour|minute|second|ms)");
 
@@ -88,68 +87,103 @@ namespace Reports.Models
                 }
 
                 if (string.IsNullOrEmpty(format))
-                    writer.WriteSafeString(d.ToString());
+                    output.WriteSafeString(d.ToString());
                 else
-                    writer.WriteSafeString(d.ToString(format));
+                    output.WriteSafeString(d.ToString(format));
             });
 
-            Handlebars.RegisterHelper("link_to", (writer, context, parameters) =>
+            Handlebars.RegisterHelper("link_to", (output, context, arguments) =>
             {
                 string url = null;
                 string text = null;
 
-                if (parameters.Length > 0)
-                    url = parameters[0].ToString();
+                if (arguments.Length > 0)
+                    url = arguments[0].ToString();
 
-                if (parameters.Length > 1)
-                    text = parameters[1].ToString();
+                if (arguments.Length > 1)
+                    text = arguments[1].ToString();
                 else
                     text = url;
 
                 if (!string.IsNullOrEmpty(url))
-                    writer.WriteSafeString(string.Format("<a href=\"{0}\">{1}</a>", url, text));
+                    output.WriteSafeString(string.Format("<a href=\"{0}\">{1}</a>", url, text));
                 else
-                    writer.WriteSafeString("[link_to: at least one parameter is required]");
+                    output.WriteSafeString("[link_to: at least one parameter is required]");
             });
 
-            Handlebars.RegisterHelper("mail_to", (writer, context, parameters) =>
+            Handlebars.RegisterHelper("mail_to", (output, context, arguments) =>
             {
                 string email = null;
                 string text = null;
 
-                if (parameters.Length > 0)
-                    email = parameters[0].ToString();
+                if (arguments.Length > 0)
+                    email = arguments[0].ToString();
 
-                if (parameters.Length > 1)
-                    text = parameters[1].ToString();
+                if (arguments.Length > 1)
+                    text = arguments[1].ToString();
                 else
                     text = email;
 
                 if (!string.IsNullOrEmpty(email))
-                    writer.WriteSafeString(string.Format("<a href=\"mailto:{0}\">{1}</a>", email, text));
+                    output.WriteSafeString(string.Format("<a href=\"mailto:{0}\">{1}</a>", email, text));
                 else
-                    writer.WriteSafeString("[mail_to: at least one parameter is required]");
+                    output.WriteSafeString("[mail_to: at least one parameter is required]");
             });
 
-            //var templateDir = ConfigurationManager.AppSettings["TemplateDirectory"];
-            //var template = File.ReadAllText(Path.Combine(templateDir, "managerUsageSummaryEmail.hbs"))
-            var template = GetTemplate("manager-usage-summary", "email");
-
-            _managerUsageSummaryEmailTemplate = Handlebars.Compile(template);
+            //var template = GetTemplate(System.Web.HttpContext.Current.Server.MapPath("~"), "manager-usage-summary", "email");
+            //_templates.TryAdd("manager-usage-summary-email", Handlebars.Compile(template));
         }
 
-        public static string ManagerUsageSummaryEmailTemplate(object arg)
+        public static string GetTemplateDirectoryPath()
         {
-            return _managerUsageSummaryEmailTemplate(arg);
+            return Path.Combine(_basePath, "Content", "Templates");
+        }
+
+        public static string GetTemplateFilePath(string report, string name)
+        {
+            var result = Path.Combine(GetTemplateDirectoryPath(), $"{report}-{name}.hbs");
+            return result;
+        }
+
+        public static void SetBasePath(string value)
+        {
+            if (!Directory.Exists(value))
+                throw new Exception($"Directory not found: {value}");
+
+            _basePath = value;
+        }
+
+        public static string ExecuteTemplate(string report, string name, object args)
+        {
+            var key = $"{report}-name";
+
+            if (!_templates.TryGetValue(key, out HandlebarsTemplate<object, object> tmpl))
+            {
+                var template = GetTemplate(report, name);
+                tmpl = Handlebars.Compile(template);
+                _templates.TryAdd(key, tmpl);
+            }
+
+            return tmpl(args);
+        }
+
+        public static string ManagerUsageSummaryEmailTemplate(object args)
+        {
+            var result = ExecuteTemplate("manager-usage-summary", "email", args);
+            return result;
         }
 
         public static string GetTemplate(string report, string name)
         {
-            var template = DA.Current.Query<Template>().FirstOrDefault(x => x.Report == report && x.TemplateName == name);
-            if (template == null)
-                throw new TemplateNotFoundException(report, name);
+            var templatePath = GetTemplateFilePath(report, name);
+            string templateContent;
+
+            if (File.Exists(templatePath))
+                templateContent = File.ReadAllText(templatePath);
             else
-                return template.TemplateContent;
+                throw new TemplateNotFoundException(report, name);
+
+            return templateContent;
         }
     }
 

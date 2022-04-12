@@ -1,4 +1,5 @@
-﻿using LNF.Models.Data;
+﻿using LNF;
+using LNF.Data;
 using LNF.Web;
 using Reports.Models;
 using System;
@@ -8,13 +9,22 @@ using System.Web.Mvc;
 
 namespace Reports.Controllers
 {
-    public class AdminController : Controller
+    public class AdminController : ReportsController
     {
+        public EmailManager EmailManager { get; }
+
+        public AdminController(IProvider provider) : base(provider)
+        {
+            EmailManager = new EmailManager(provider);
+        }
+
         [HttpGet, Route("admin/email")]
         public ActionResult Email()
         {
-            if (!HttpContext.CurrentUser().HasPriv(ClientPrivilege.Administrator | ClientPrivilege.Developer))
+            if (!CurrentUser.HasPriv(ClientPrivilege.Administrator | ClientPrivilege.Developer))
                 return RedirectToAction("Index", "Home");
+
+            ViewBag.CurrentUserEmail = CurrentUser.Email;
 
             return View();
         }
@@ -22,8 +32,8 @@ namespace Reports.Controllers
         [Route("admin/email/ajax/manager-usage-summary/recipients")]
         public ActionResult GetManagerUsageSummaryEmailRecipients(string group, DateTime period, bool remote = false)
         {
-            var currentUserClientId = HttpContext.CurrentUser().ClientID;
-            var emails = GetManagerUsageSummaryEmails(group, period, currentUserClientId, remote);
+            var currentUserClientId = CurrentUser.ClientID;
+            var emails = GetManagerUsageSummaryEmails(group, period, remote);
             var result = emails.Select(x => new { Name = x.RecipientName, Email = x.RecipientEmail });
             return Json(result, JsonRequestBehavior.AllowGet);
         }
@@ -31,8 +41,8 @@ namespace Reports.Controllers
         [Route("admin/email/ajax/manager-usage-summary/send")]
         public ActionResult SendManagerUsageSummaryEmails(string group, DateTime period, string message, string ccaddr, bool debug, bool remote = false)
         {
-            var currentUserClientId = HttpContext.CurrentUser().ClientID;
-            var emails = GetManagerUsageSummaryEmails(group, period, currentUserClientId, remote);
+            var currentUserClientId = CurrentUser.ClientID;
+            var emails = GetManagerUsageSummaryEmails(group, period, remote);
             var count = EmailManager.SendManagerSummaryReport(currentUserClientId, emails, message, ccaddr, debug);
             var result = new { message = string.Format("Manager Usage Summary emails sent: {0}", count) };
             return Json(result, JsonRequestBehavior.AllowGet);
@@ -44,7 +54,7 @@ namespace Reports.Controllers
             return View();
         }
 
-        private IEnumerable<EmailMessage> GetManagerUsageSummaryEmails(string group, DateTime period, int currentUserClientId, bool remote)
+        private IEnumerable<EmailMessage> GetManagerUsageSummaryEmails(string group, DateTime period, bool remote)
         {
             var key = string.Format("manager-usage-summary-emails-{0}-{1:yyyyMMdd}{2}", group, period, remote ? "-remote" : string.Empty);
 
@@ -56,8 +66,8 @@ namespace Reports.Controllers
             }
             else
             {
-                var managers = EmailManager.GetManagers(currentUserClientId, group, period, remote);
-                emails = EmailManager.CreateManagerUsageSummaryEmails(currentUserClientId, period, managers, remote).ToList();
+                var managers = EmailManager.GetManagers(group, period);
+                emails = EmailManager.CreateManagerUsageSummaryEmails(period, managers, remote).ToList();
                 Session[key] = emails;
             }
 

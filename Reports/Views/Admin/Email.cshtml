@@ -1,5 +1,4 @@
-﻿@using LNF.Cache;
-@using LNF.CommonTools;
+﻿@using LNF.CommonTools;
 @using System.Configuration;
 
 @{
@@ -11,7 +10,13 @@
 
     string debugEmail = ConfigurationManager.AppSettings["DebugEmail"];
 
-    string currentUserEmail = CacheManager.Current.CurrentUser.Email;
+    string currentUserEmail = ViewBag.CurrentUserEmail;
+
+    string returnTo = null;
+    if (Session["return-to"] != null)
+    {
+        returnTo = Session["return-to"].ToString();
+    }
 }
 
 @section styles{
@@ -27,11 +32,19 @@
     </style>
 }
 
-<h3>
-    @Html.ActionLink("Reports", "Index", "Home")
-    <span>/</span>
-    <span>Email Admin</span>
-</h3>
+@if (string.IsNullOrEmpty(returnTo))
+{
+    <h3>
+        @Html.ActionLink("Reports", "Index", "Home")
+        <span>/</span>
+        <span>Email Admin</span>
+    </h3>
+}
+else
+{
+    <h2 class="report-title">Email Admin</h2>
+    <div><strong><a href="@Url.Action("Return", "Home")">&larr; Return to Main Page</a></strong></div>
+}
 
 <hr />
 
@@ -56,7 +69,10 @@
     <div class="panel-body">
         <div class="row">
             <div class="col-sm-5">
-                <input type="hidden" name="Period" class="period" value="@priorPeriod.ToString("yyyy-MM-dd")" />
+                <div class="form-group">
+                    <label>Period</label>
+                    <input type="text" class="form-control period" placeholder="YYYY-MM-DD" value="@priorPeriod.ToString("yyyy-MM-dd")" />
+                </div>
 
                 <div class="form-group">
                     <label>Additional Message</label>

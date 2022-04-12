@@ -1,5 +1,4 @@
-﻿using LNF.Models.Data;
-using System;
+﻿using LNF.Data;
 
 namespace Reports.Models
 {

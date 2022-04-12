@@ -1,0 +1,119 @@
+<p>
+    <strong>Period:</strong> {{format_date model.Period "MMMM YYYY"}}<br />
+    <strong>Manager:</strong> {{model.LName}}, {{model.FName}}
+</p>
+{{#if model.HasData}}
+<div class="row">
+    <div class="{{class}}">
+        <div class="panel panel-default account-items">
+            <div class="panel-heading">
+                <h3 class="panel-title">Charges by Account</h3>
+            </div>
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th style="width: 150px;">Account</th>
+                        <th>Users</th>
+                        {{#if model.ShowSubsidyColumn}}
+                        <th style="text-align: right; width: 150px;">Usage Charges</th>
+                        <th style="text-align: right; width: 150px;">New User<br />Charge Reduction</th>
+                        <th style="text-align: right; width: 150px;">Net Charges</th>
+                        {{else}}
+                        <th style="text-align: right; width: 150px;">Usage Charges</th>
+                        {{/if}}
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#if model.ShowSubsidyColumn}}
+                    {{#each model.Accounts}}
+                    <tr>
+                        <td>{{Name}}</td>
+                        <td>{{Members}}</td>
+                        <td style="text-align: right;">{{format_currency UsageCharge}}</td>
+                        <td style="text-align: right;">{{format_currency Subsidy}}</td>
+                        <td style="text-align: right;">{{format_currency NetCharge}}</td>
+                    </tr>
+                    {{/each}}
+                    {{else}}
+                    {{#each model.Accounts}}
+                    <tr>
+                        <td>{{Name}}</td>
+                        <td>{{Members}}</td>
+                        <td style="text-align: right;">{{format_currency UsageCharge}}</td>
+                    </tr>
+                    {{/each}}
+                    {{/if}}
+                </tbody>
+                <tfoot>
+                    <tr style="font-weight: bold;">
+                        <td colspan="2">&nbsp;</td>
+                        {{#if model.ShowSubsidyColumn}}
+                        <td style="text-align: right;">{{format_currency model.TotalUsageCharge}}</td>
+                        <td style="text-align: right;">{{format_currency model.TotalSubsidy}}</td>
+                        <td style="text-align: right;">{{format_currency model.TotalNetCharge}}</td>
+                        {{else}}
+                        <td style="text-align: right;">{{format_currency model.TotalUsageCharge}}</td>
+                        {{/if}}
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="panel panel-default user-items">
+            <div class="panel-heading">
+                <h3 class="panel-title">Charges by Lab User</h3>
+            </div>
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th style="width: 150px;">Lab User</th>
+                        <th>Accounts</th>
+                        {{#if model.ShowSubsidyColumn}}
+                        <th style="text-align: right; width: 150px;">Usage Charges</th>
+                        <th style="text-align: right; width: 150px;">New User<br />Charge Reduction</th>
+                        <th style="text-align: right; width: 150px;">Net Charges</th>
+                        {{else}}
+                        <th style="text-align: right; width: 150px;">Usage Charges</th>
+                        {{/if}}
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#if model.ShowSubsidyColumn}}
+                    {{#each model.Clients}}
+                    <tr>
+                        <td>{{Name}}</td>
+                        <td>{{Members}}</td>
+                        <td style="text-align: right;">{{format_currency UsageCharge}}</td>
+                        <td style="text-align: right;">{{format_currency Subsidy}}</td>
+                        <td style="text-align: right;">{{format_currency NetCharge}}</td>
+                    </tr>
+                    {{/each}}
+                    {{else}}
+                    {{#each model.Clients}}
+                    <tr>
+                        <td>{{Name}}</td>
+                        <td>{{Members}}</td>
+                        <td style="text-align: right;">{{format_currency UsageCharge}}</td>
+                    </tr>
+                    {{/each}}
+                    {{/if}}
+                </tbody>
+                <tfoot>
+                    <tr style="font-weight: bold;">
+                        <td colspan="2">&nbsp;</td>
+                        {{#if model.ShowSubsidyColumn}}
+                        <td style="text-align: right;">{{format_currency model.TotalUsageCharge}}</td>
+                        <td style="text-align: right;">{{format_currency model.TotalSubsidy}}</td>
+                        <td style="text-align: right;">{{format_currency model.TotalNetCharge}}</td>
+                        {{else}}
+                        <td style="text-align: right;">{{format_currency model.TotalUsageCharge}}</td>
+                        {{/if}}
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+{{else}}
+<em class="text-muted">No charges found for this period.</em>
+{{/if}}
